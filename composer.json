@@ -1,0 +1,13 @@
+{
+    "name": "eronyx/platform",
+    "description": "ERONYX Private Marketplace",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/"
+        }
+    },
+    "require": {
+        "php": ">=8.2"
+    }
+}
