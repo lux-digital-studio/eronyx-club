@@ -7,6 +7,7 @@ use App\Controllers\AuthController;
 use App\Controllers\AccountController;
 use App\Controllers\AdminController;
 use App\Controllers\CreatorController;
+use App\Controllers\CreatorListingController;
 use App\Controllers\ModeratorController;
 use App\Core\Router;
 use App\Middleware\AuthMiddleware;
@@ -18,6 +19,30 @@ return static function (Router $router): void {
     $router->get('/marketplace', [HomeController::class, 'marketplace']);
     $router->get('/account', [AccountController::class, 'index'], [AuthMiddleware::class]);
     $router->get('/creator', [CreatorController::class, 'index'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['creator']]],
+    ]);
+    $router->get('/creator/listings', [CreatorListingController::class, 'index'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['creator']]],
+    ]);
+    $router->get('/creator/listings/create', [CreatorListingController::class, 'create'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['creator']]],
+    ]);
+    $router->post('/creator/listings', [CreatorListingController::class, 'store'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['creator']]],
+    ]);
+    $router->get('/creator/listings/{id}', [CreatorListingController::class, 'show'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['creator']]],
+    ]);
+    $router->get('/creator/listings/{id}/edit', [CreatorListingController::class, 'edit'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['creator']]],
+    ]);
+    $router->post('/creator/listings/{id}', [CreatorListingController::class, 'update'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
     ]);
