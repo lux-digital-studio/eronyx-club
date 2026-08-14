@@ -8,7 +8,7 @@ use App\Interfaces\MiddlewareInterface;
 
 final class Router
 {
-    /** @var array<string, array<string, array{callback: callable|array{0: class-string, 1: string}, middleware: list<class-string<MiddlewareInterface>>}>> */
+    /** @var array<string, array<string, array{callback: callable|array{0: class-string, 1: string}, middleware: list<class-string<MiddlewareInterface>|array{0: class-string<MiddlewareInterface>, 1: array<int, mixed>}>}>> */
     private array $routes = [];
 
     public function __construct(
@@ -17,13 +17,13 @@ final class Router
     ) {
     }
 
-    /** @param list<class-string<MiddlewareInterface>> $middleware */
+    /** @param list<class-string<MiddlewareInterface>|array{0: class-string<MiddlewareInterface>, 1: array<int, mixed>}> $middleware */
     public function get(string $path, callable|array $callback, array $middleware = []): void
     {
         $this->addRoute('GET', $path, $callback, $middleware);
     }
 
-    /** @param list<class-string<MiddlewareInterface>> $middleware */
+    /** @param list<class-string<MiddlewareInterface>|array{0: class-string<MiddlewareInterface>, 1: array<int, mixed>}> $middleware */
     public function post(string $path, callable|array $callback, array $middleware = []): void
     {
         $this->addRoute('POST', $path, $callback, $middleware);
@@ -40,8 +40,8 @@ final class Router
             return;
         }
 
-        foreach ($route['middleware'] as $middlewareClass) {
-            $middleware = new $middlewareClass();
+        foreach ($route['middleware'] as $middlewareDefinition) {
+            $middleware = $this->makeMiddleware($middlewareDefinition);
 
             if (!$middleware->handle($this->request, $this->response)) {
                 return;
@@ -55,7 +55,7 @@ final class Router
         }
     }
 
-    /** @param list<class-string<MiddlewareInterface>> $middleware */
+    /** @param list<class-string<MiddlewareInterface>|array{0: class-string<MiddlewareInterface>, 1: array<int, mixed>}> $middleware */
     private function addRoute(string $method, string $path, callable|array $callback, array $middleware): void
     {
         $this->routes[$method][$path] = [
@@ -73,5 +73,15 @@ final class Router
         }
 
         return $callback();
+    }
+
+    /** @param class-string<MiddlewareInterface>|array{0: class-string<MiddlewareInterface>, 1: array<int, mixed>} $definition */
+    private function makeMiddleware(string|array $definition): MiddlewareInterface
+    {
+        if (is_array($definition)) {
+            return new $definition[0](...$definition[1]);
+        }
+
+        return new $definition();
     }
 }

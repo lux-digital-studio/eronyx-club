@@ -82,4 +82,38 @@ final class UserRepository
             'role_id' => $roleId,
         ]);
     }
+
+    /** @return array{id: int, status: string, deleted_at: string|null, roles: list<string>}|null */
+    public function findAuthorizationContext(int $userId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT u.id, u.status, u.deleted_at, r.name AS role_name
+             FROM users u
+             LEFT JOIN user_roles ur ON ur.user_id = u.id
+             LEFT JOIN roles r ON r.id = ur.role_id
+             WHERE u.id = :id'
+        );
+        $statement->execute(['id' => $userId]);
+        $rows = $statement->fetchAll();
+
+        if ($rows === []) {
+            return null;
+        }
+
+        $first = $rows[0];
+        $roles = [];
+
+        foreach ($rows as $row) {
+            if (is_string($row['role_name'] ?? null)) {
+                $roles[] = $row['role_name'];
+            }
+        }
+
+        return [
+            'id' => (int) $first['id'],
+            'status' => (string) $first['status'],
+            'deleted_at' => is_string($first['deleted_at']) ? $first['deleted_at'] : null,
+            'roles' => array_values(array_unique($roles)),
+        ];
+    }
 }

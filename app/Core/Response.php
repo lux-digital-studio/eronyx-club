@@ -17,6 +17,11 @@ final class Response
         $this->send('404 - Not Found', 404);
     }
 
+    public function forbidden(): void
+    {
+        $this->send('403 - Forbidden', 403);
+    }
+
     public function redirect(string $url, int $statusCode = 302): void
     {
         http_response_code($statusCode);
