@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Interfaces\MiddlewareInterface;
+
 final class Router
 {
-    /** @var array<string, array<string, callable|array{0: class-string, 1: string}>> */
+    /** @var array<string, array<string, array{callback: callable|array{0: class-string, 1: string}, middleware: list<class-string<MiddlewareInterface>>}>> */
     private array $routes = [];
 
     public function __construct(
@@ -15,37 +17,51 @@ final class Router
     ) {
     }
 
-    public function get(string $path, callable|array $callback): void
+    /** @param list<class-string<MiddlewareInterface>> $middleware */
+    public function get(string $path, callable|array $callback, array $middleware = []): void
     {
-        $this->addRoute('GET', $path, $callback);
+        $this->addRoute('GET', $path, $callback, $middleware);
     }
 
-    public function post(string $path, callable|array $callback): void
+    /** @param list<class-string<MiddlewareInterface>> $middleware */
+    public function post(string $path, callable|array $callback, array $middleware = []): void
     {
-        $this->addRoute('POST', $path, $callback);
+        $this->addRoute('POST', $path, $callback, $middleware);
     }
 
     public function dispatch(): void
     {
         $method = $this->request->method();
         $path = $this->request->path();
-        $callback = $this->routes[$method][$path] ?? null;
+        $route = $this->routes[$method][$path] ?? null;
 
-        if ($callback === null) {
+        if ($route === null) {
             $this->response->notFound();
             return;
         }
 
-        $result = $this->resolve($callback);
+        foreach ($route['middleware'] as $middlewareClass) {
+            $middleware = new $middlewareClass();
+
+            if (!$middleware->handle($this->request, $this->response)) {
+                return;
+            }
+        }
+
+        $result = $this->resolve($route['callback']);
 
         if (is_string($result)) {
             $this->response->send($result);
         }
     }
 
-    private function addRoute(string $method, string $path, callable|array $callback): void
+    /** @param list<class-string<MiddlewareInterface>> $middleware */
+    private function addRoute(string $method, string $path, callable|array $callback, array $middleware): void
     {
-        $this->routes[$method][$path] = $callback;
+        $this->routes[$method][$path] = [
+            'callback' => $callback,
+            'middleware' => $middleware,
+        ];
     }
 
     private function resolve(callable|array $callback): mixed
