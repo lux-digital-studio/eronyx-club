@@ -23,4 +23,15 @@ final class Request
 
         return $path === '' ? '/' : $path;
     }
+
+    public function input(string $key, mixed $default = null): mixed
+    {
+        return $_POST[$key] ?? $default;
+    }
+
+    /** @return array<string, mixed> */
+    public function all(): array
+    {
+        return $_POST;
+    }
 }

@@ -16,4 +16,11 @@ final class Response
     {
         $this->send('404 - Not Found', 404);
     }
+
+    public function redirect(string $url, int $statusCode = 302): void
+    {
+        http_response_code($statusCode);
+        header('Location: ' . $url, true, $statusCode);
+        exit;
+    }
 }
