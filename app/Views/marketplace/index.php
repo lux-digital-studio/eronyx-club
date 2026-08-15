@@ -21,7 +21,11 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
             <ul>
                 <?php foreach ($listings as $listing): ?>
                     <?php $categories = $categoryMap[(int) $listing['id']] ?? []; ?>
+                    <?php $coverId = $coverMap[(int) $listing['id']] ?? null; ?>
                     <li>
+                        <?php if ($coverId !== null): ?>
+                            <img src="<?= $e($mediaBaseUrl . '/' . $coverId) ?>" alt="" width="180">
+                        <?php endif; ?>
                         <h2><a href="<?= $e($baseUrl . '/' . $listing['slug']) ?>"><?= $e($listing['title']) ?></a></h2>
                         <p><?= $e($listing['price']) ?> <?= $e($listing['currency']) ?> · <?= $e($listing['listing_type']) ?></p>
                         <?php if ($categories !== []): ?>

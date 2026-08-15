@@ -67,6 +67,7 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
                     <a href="<?= $e($publicUrl) ?>">Ver en marketplace</a>
                 <?php endif; ?>
             <?php endif; ?>
+            <a href="<?= $e($mediaUrl) ?>">Gestionar imágenes</a>
             <a href="<?= $e($indexUrl) ?>">Volver</a>
         </p>
     </main>

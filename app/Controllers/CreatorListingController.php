@@ -103,6 +103,7 @@ final class CreatorListingController
             'editUrl' => $this->url('/creator/listings/' . $listingId . '/edit'),
             'submitUrl' => $this->url('/creator/listings/' . $listingId . '/submit'),
             'publicUrl' => $this->url('/marketplace/' . $listing['slug']),
+            'mediaUrl' => $this->url('/creator/listings/' . $listingId . '/media'),
             'indexUrl' => $this->url('/creator/listings'),
         ]);
     }

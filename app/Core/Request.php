@@ -6,6 +6,9 @@ namespace App\Core;
 
 final class Request
 {
+    /** @var array<string, mixed>|null */
+    private ?array $parsedInput = null;
+
     public function method(): string
     {
         return strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
@@ -26,12 +29,36 @@ final class Request
 
     public function input(string $key, mixed $default = null): mixed
     {
-        return $_POST[$key] ?? $default;
+        return $this->parsedInput()[$key] ?? $default;
+    }
+
+    /** @return array<string, mixed>|null */
+    public function file(string $key): ?array
+    {
+        $file = $_FILES[$key] ?? null;
+
+        return is_array($file) ? $file : null;
     }
 
     /** @return array<string, mixed> */
     public function all(): array
     {
-        return $_POST;
+        return $this->parsedInput();
+    }
+
+    /** @return array<string, mixed> */
+    private function parsedInput(): array
+    {
+        if ($this->parsedInput !== null) {
+            return $this->parsedInput;
+        }
+
+        $this->parsedInput = $_POST;
+
+        if ($this->parsedInput === [] && str_starts_with((string) ($_SERVER['CONTENT_TYPE'] ?? ''), 'application/x-www-form-urlencoded')) {
+            parse_str((string) file_get_contents('php://input'), $this->parsedInput);
+        }
+
+        return $this->parsedInput;
     }
 }

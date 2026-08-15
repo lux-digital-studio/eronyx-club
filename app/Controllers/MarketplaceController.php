@@ -7,16 +7,20 @@ namespace App\Controllers;
 use App\Core\Database;
 use App\Core\Response;
 use App\Repositories\ListingRepository;
+use App\Repositories\MediaRepository;
 
 final class MarketplaceController
 {
     private Response $response;
     private ListingRepository $listings;
+    private MediaRepository $media;
 
     public function __construct()
     {
         $this->response = new Response();
-        $this->listings = new ListingRepository((new Database())->connection());
+        $pdo = (new Database())->connection();
+        $this->listings = new ListingRepository($pdo);
+        $this->media = new MediaRepository($pdo);
     }
 
     public function index(): string
@@ -29,7 +33,11 @@ final class MarketplaceController
         return $this->view('marketplace/index.php', [
             'listings' => $listings,
             'categoryMap' => $categoryMap,
+            'coverMap' => $this->media->findCoverIdsForListings(
+                array_map(static fn (array $listing): int => (int) $listing['id'], $listings)
+            ),
             'baseUrl' => $this->url('/marketplace'),
+            'mediaBaseUrl' => $this->url('/media'),
         ]);
     }
 
@@ -52,6 +60,8 @@ final class MarketplaceController
         return $this->view('marketplace/show.php', [
             'listing' => $listing,
             'categories' => $this->listings->findCategoriesForListing((int) $listing['id']),
+            'mediaGroups' => $this->media->findPublicMediaForListing((int) $listing['id']),
+            'mediaBaseUrl' => $this->url('/media'),
             'indexUrl' => $this->url('/marketplace'),
         ]);
     }
