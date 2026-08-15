@@ -6,6 +6,7 @@ use App\Controllers\HomeController;
 use App\Controllers\AuthController;
 use App\Controllers\AccountController;
 use App\Controllers\AdminController;
+use App\Controllers\CheckoutController;
 use App\Controllers\CreatorApplicationController;
 use App\Controllers\CreatorController;
 use App\Controllers\CreatorListingController;
@@ -15,6 +16,7 @@ use App\Controllers\MediaController;
 use App\Controllers\ModeratorCreatorApplicationController;
 use App\Controllers\ModeratorController;
 use App\Controllers\ModeratorListingController;
+use App\Controllers\OrderController;
 use App\Core\Router;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\GuestMiddleware;
@@ -26,9 +28,14 @@ return static function (Router $router): void {
     $router->get('/marketplace/{slug}', [MarketplaceController::class, 'show']);
     $router->get('/media/{id}', [MediaController::class, 'show']);
     $router->get('/account', [AccountController::class, 'index'], [AuthMiddleware::class]);
+    $router->get('/account/orders', [OrderController::class, 'index'], [AuthMiddleware::class]);
+    $router->get('/account/orders/{id}', [OrderController::class, 'show'], [AuthMiddleware::class]);
+    $router->post('/account/orders/{id}/test-pay', [OrderController::class, 'testPay'], [AuthMiddleware::class]);
     $router->get('/account/creator/apply', [CreatorApplicationController::class, 'showApply'], [AuthMiddleware::class]);
     $router->post('/account/creator/apply', [CreatorApplicationController::class, 'apply'], [AuthMiddleware::class]);
     $router->get('/account/creator/status', [CreatorApplicationController::class, 'status'], [AuthMiddleware::class]);
+    $router->get('/checkout/{listingId}', [CheckoutController::class, 'show'], [AuthMiddleware::class]);
+    $router->post('/checkout/{listingId}', [CheckoutController::class, 'store'], [AuthMiddleware::class]);
     $router->get('/creator', [CreatorController::class, 'index'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],

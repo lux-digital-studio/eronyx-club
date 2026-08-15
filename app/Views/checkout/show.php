@@ -9,19 +9,21 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mi cuenta - ERONYX</title>
+    <title>Checkout - ERONYX</title>
 </head>
 <body>
     <main>
-        <h1>ERONYX - Mi cuenta</h1>
-        <p>Sesion iniciada correctamente.</p>
-        <p><a href="<?= $e($ordersUrl) ?>">Mis pedidos</a></p>
-        <p><a href="<?= $e($creatorStatusUrl) ?>">Estado creator</a></p>
+        <h1>Checkout</h1>
+        <h2><?= $e($listing['title']) ?></h2>
+        <p><?= $e($listing['price']) ?> <?= $e($listing['currency']) ?></p>
+        <p><?= $e($listing['listing_type']) ?></p>
 
-        <form method="post" action="<?= $e($logoutUrl) ?>">
+        <form method="post" action="<?= $e($action) ?>">
             <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-            <button type="submit">Cerrar sesion</button>
+            <button type="submit">Crear pedido</button>
         </form>
+
+        <p><a href="<?= $e($marketplaceUrl) ?>">Volver al marketplace</a></p>
     </main>
 </body>
 </html>

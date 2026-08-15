@@ -95,7 +95,7 @@ final class ListingRepository
     public function findPublishedPublic(): array
     {
         $statement = $this->pdo->query(
-            "SELECT id, title, slug, description, listing_type, price, currency, published_at
+            "SELECT id, owner_user_id, title, slug, description, listing_type, price, currency, visibility, published_at
              FROM listings
              WHERE status = 'published'
                 AND visibility = 'public'
@@ -111,7 +111,7 @@ final class ListingRepository
     public function findPublishedPublicBySlug(string $slug): ?array
     {
         $statement = $this->pdo->prepare(
-            "SELECT id, title, slug, description, listing_type, price, currency, published_at
+            "SELECT id, owner_user_id, title, slug, description, listing_type, price, currency, visibility, published_at
              FROM listings
              WHERE slug = :slug
                 AND status = 'published'

@@ -74,6 +74,7 @@ final class MarketplaceController
         $listingId = (int) $listing['id'];
         $privateMedia = $this->media->findPrivateMediaForListing($listingId);
         $canAccessPrivate = $this->privateAccess->canAccessListingPrivateContent($this->auth->id(), $listingId);
+        $isOwner = $this->auth->id() !== null && (int) $listing['owner_user_id'] === $this->auth->id();
 
         return $this->view('marketplace/show.php', [
             'listing' => $listing,
@@ -82,6 +83,8 @@ final class MarketplaceController
             'privateMedia' => $canAccessPrivate ? $privateMedia : [],
             'privateMediaCount' => count($privateMedia),
             'canAccessPrivateMedia' => $canAccessPrivate,
+            'isOwner' => $isOwner,
+            'checkoutUrl' => $this->url('/checkout/' . $listingId),
             'mediaBaseUrl' => $this->url('/media'),
             'indexUrl' => $this->url('/marketplace'),
         ]);
