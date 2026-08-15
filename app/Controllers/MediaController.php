@@ -9,7 +9,9 @@ use App\Core\Database;
 use App\Core\Response;
 use App\Core\Session;
 use App\Repositories\MediaRepository;
+use App\Repositories\PrivateContentAccessRepository;
 use App\Services\MediaStorageService;
+use App\Services\PrivateContentAccessService;
 use RuntimeException;
 
 final class MediaController
@@ -18,14 +20,22 @@ final class MediaController
     private Auth $auth;
     private MediaRepository $media;
     private MediaStorageService $storage;
+    private PrivateContentAccessService $privateAccess;
 
     public function __construct()
     {
         $this->response = new Response();
         $session = new Session();
         $this->auth = new Auth($session);
-        $this->media = new MediaRepository((new Database())->connection());
+        $pdo = (new Database())->connection();
+        $this->media = new MediaRepository($pdo);
         $this->storage = new MediaStorageService();
+        $this->privateAccess = new PrivateContentAccessService(
+            new PrivateContentAccessRepository($pdo),
+            null,
+            null,
+            $pdo
+        );
     }
 
     public function show(string $id): ?string
@@ -46,7 +56,7 @@ final class MediaController
 
         $media = $rows[0];
 
-        if (!$this->isActiveImage($media)) {
+        if (!$this->isActiveMedia($media)) {
             $this->response->notFound();
 
             return null;
@@ -74,26 +84,38 @@ final class MediaController
             return null;
         }
 
-        header('Content-Type: ' . (string) $media['mime_type']);
-        header('X-Content-Type-Options: nosniff');
-        header('Content-Disposition: inline');
-        header('Cache-Control: ' . ($access === 'public' ? 'public, max-age=3600' : 'private, no-store'));
-        header('Content-Length: ' . (string) filesize($path));
-        readfile($path);
-        exit;
+        $this->sendFile($path, $media, $access);
+
+        return null;
     }
 
     /** @param array<string, mixed> $media */
-    private function isActiveImage(array $media): bool
+    private function isActiveMedia(array $media): bool
     {
-        return $media['media_type'] === 'image'
-            && $media['visibility'] === 'public'
+        return in_array($media['media_type'], ['image', 'video'], true)
+            && in_array($media['visibility'], ['public', 'private'], true)
             && $media['status'] === 'active'
             && $media['deleted_at'] === null;
     }
 
     /** @param list<array<string, mixed>> $rows */
     private function accessContext(array $rows): ?string
+    {
+        $media = $rows[0];
+
+        if ($media['visibility'] === 'public') {
+            return $this->publicAccessContext($rows);
+        }
+
+        if ($media['visibility'] === 'private') {
+            return $this->privateAccessContext($rows);
+        }
+
+        return null;
+    }
+
+    /** @param list<array<string, mixed>> $rows */
+    private function publicAccessContext(array $rows): ?string
     {
         $authUserId = $this->auth->id();
 
@@ -103,6 +125,7 @@ final class MediaController
                 && $row['owner_user_id'] === $authUserId
                 && $row['listing_owner_user_id'] === $authUserId
                 && $row['listing_id'] !== null
+                && $row['listing_deleted_at'] === null
             ) {
                 return 'owner';
             }
@@ -121,5 +144,135 @@ final class MediaController
         }
 
         return null;
+    }
+
+    /** @param list<array<string, mixed>> $rows */
+    private function privateAccessContext(array $rows): ?string
+    {
+        $authUserId = $this->auth->id();
+
+        foreach ($rows as $row) {
+            if (
+                $row['usage_type'] === 'private_content'
+                && $row['listing_id'] !== null
+                && $row['listing_deleted_at'] === null
+                && $this->privateAccess->canAccessListingPrivateContent($authUserId, (int) $row['listing_id'])
+            ) {
+                return ((int) $row['listing_owner_user_id'] === $authUserId) ? 'owner' : 'private';
+            }
+        }
+
+        return null;
+    }
+
+    /** @param array<string, mixed> $media */
+    private function sendFile(string $path, array $media, string $access): void
+    {
+        $size = filesize($path);
+
+        if ($size === false) {
+            $this->response->notFound();
+
+            return;
+        }
+
+        header('Content-Type: ' . (string) $media['mime_type']);
+        header('X-Content-Type-Options: nosniff');
+        header('Content-Disposition: inline');
+        header('Cache-Control: ' . ($access === 'public' ? 'public, max-age=3600' : 'private, no-store'));
+
+        if ($media['media_type'] === 'video') {
+            header('Accept-Ranges: bytes');
+            $range = $this->requestedRange((int) $size);
+
+            if ($range === false) {
+                http_response_code(416);
+                header('Content-Range: bytes */' . (string) $size);
+                exit;
+            }
+
+            if (is_array($range)) {
+                [$start, $end] = $range;
+                $length = $end - $start + 1;
+                http_response_code(206);
+                header('Content-Length: ' . (string) $length);
+                header('Content-Range: bytes ' . $start . '-' . $end . '/' . $size);
+                $this->streamRange($path, $start, $length);
+                exit;
+            }
+        }
+
+        header('Content-Length: ' . (string) $size);
+        readfile($path);
+        exit;
+    }
+
+    /** @return array{0: int, 1: int}|false|null */
+    private function requestedRange(int $size): array|false|null
+    {
+        $header = (string) ($_SERVER['HTTP_RANGE'] ?? '');
+
+        if ($header === '') {
+            return null;
+        }
+
+        if (preg_match('/\Abytes=(\d*)-(\d*)\z/', $header, $matches) !== 1) {
+            return false;
+        }
+
+        $startRaw = $matches[1];
+        $endRaw = $matches[2];
+
+        if ($startRaw === '' && $endRaw === '') {
+            return false;
+        }
+
+        if ($startRaw === '') {
+            $suffix = (int) $endRaw;
+
+            if ($suffix <= 0) {
+                return false;
+            }
+
+            $start = max(0, $size - $suffix);
+            $end = $size - 1;
+        } else {
+            $start = (int) $startRaw;
+            $end = $endRaw === '' ? $size - 1 : (int) $endRaw;
+        }
+
+        if ($start < 0 || $end < $start || $start >= $size) {
+            return false;
+        }
+
+        return [$start, min($end, $size - 1)];
+    }
+
+    private function streamRange(string $path, int $start, int $length): void
+    {
+        $handle = fopen($path, 'rb');
+
+        if ($handle === false) {
+            $this->response->notFound();
+
+            return;
+        }
+
+        fseek($handle, $start);
+        $remaining = $length;
+
+        while ($remaining > 0 && !feof($handle)) {
+            $chunkSize = min(8192, $remaining);
+            $chunk = fread($handle, $chunkSize);
+
+            if ($chunk === false || $chunk === '') {
+                break;
+            }
+
+            echo $chunk;
+            $remaining -= strlen($chunk);
+        }
+
+        fclose($handle);
     }
 }

@@ -43,6 +43,21 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
             <?php endforeach; ?>
         <?php endif; ?>
 
+        <?php if ($privateMediaCount > 0): ?>
+            <h2>Contenido privado</h2>
+            <?php if ($canAccessPrivateMedia): ?>
+                <?php foreach ($privateMedia as $item): ?>
+                    <?php if ($item['media_type'] === 'video'): ?>
+                        <video src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>" controls controlsList="nodownload" width="360"></video>
+                    <?php else: ?>
+                        <img src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>" alt="" width="180">
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <p>Contenido privado disponible: <?= $e($privateMediaCount) ?> elemento(s).</p>
+            <?php endif; ?>
+        <?php endif; ?>
+
         <p><a href="<?= $e($indexUrl) ?>">Volver al marketplace</a></p>
     </main>
 </body>

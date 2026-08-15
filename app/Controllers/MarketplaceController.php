@@ -4,23 +4,37 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Auth;
 use App\Core\Database;
 use App\Core\Response;
+use App\Core\Session;
 use App\Repositories\ListingRepository;
 use App\Repositories\MediaRepository;
+use App\Repositories\PrivateContentAccessRepository;
+use App\Services\PrivateContentAccessService;
 
 final class MarketplaceController
 {
     private Response $response;
+    private Auth $auth;
     private ListingRepository $listings;
     private MediaRepository $media;
+    private PrivateContentAccessService $privateAccess;
 
     public function __construct()
     {
         $this->response = new Response();
+        $session = new Session();
+        $this->auth = new Auth($session);
         $pdo = (new Database())->connection();
         $this->listings = new ListingRepository($pdo);
         $this->media = new MediaRepository($pdo);
+        $this->privateAccess = new PrivateContentAccessService(
+            new PrivateContentAccessRepository($pdo),
+            $this->listings,
+            null,
+            $pdo
+        );
     }
 
     public function index(): string
@@ -57,10 +71,17 @@ final class MarketplaceController
             return null;
         }
 
+        $listingId = (int) $listing['id'];
+        $privateMedia = $this->media->findPrivateMediaForListing($listingId);
+        $canAccessPrivate = $this->privateAccess->canAccessListingPrivateContent($this->auth->id(), $listingId);
+
         return $this->view('marketplace/show.php', [
             'listing' => $listing,
-            'categories' => $this->listings->findCategoriesForListing((int) $listing['id']),
-            'mediaGroups' => $this->media->findPublicMediaForListing((int) $listing['id']),
+            'categories' => $this->listings->findCategoriesForListing($listingId),
+            'mediaGroups' => $this->media->findPublicMediaForListing($listingId),
+            'privateMedia' => $canAccessPrivate ? $privateMedia : [],
+            'privateMediaCount' => count($privateMedia),
+            'canAccessPrivateMedia' => $canAccessPrivate,
             'mediaBaseUrl' => $this->url('/media'),
             'indexUrl' => $this->url('/marketplace'),
         ]);

@@ -13,7 +13,7 @@ final class MediaRepository
     ) {
     }
 
-    /** @param array{owner_user_id: int, storage_key: string, mime_type: string, size_bytes: int, checksum: string} $data */
+    /** @param array{owner_user_id: int, storage_key: string, media_type: string, visibility: string, mime_type: string, size_bytes: int, checksum: string} $data */
     public function createMedia(array $data): int
     {
         $statement = $this->pdo->prepare(
@@ -21,7 +21,7 @@ final class MediaRepository
                 owner_user_id, storage_disk, storage_key, media_type, visibility,
                 mime_type, size_bytes, checksum, status
              ) VALUES (
-                :owner_user_id, 'local', :storage_key, 'image', 'public',
+                :owner_user_id, 'local', :storage_key, :media_type, :visibility,
                 :mime_type, :size_bytes, :checksum, 'active'
              )"
         );
@@ -53,9 +53,8 @@ final class MediaRepository
              FROM listing_media lm
              INNER JOIN media_files mf ON mf.id = lm.media_file_id
              WHERE lm.listing_id = :listing_id
-                AND mf.media_type = 'image'
                 AND mf.deleted_at IS NULL
-             ORDER BY FIELD(lm.usage_type, 'cover', 'gallery', 'preview'), lm.sort_order ASC, lm.id ASC"
+             ORDER BY FIELD(lm.usage_type, 'cover', 'gallery', 'preview', 'private_content'), lm.sort_order ASC, lm.id ASC"
         );
         $statement->execute(['listing_id' => $listingId]);
 
@@ -67,7 +66,7 @@ final class MediaRepository
     {
         $statement = $this->pdo->prepare(
             "SELECT lm.id AS relation_id, lm.listing_id, lm.media_file_id, lm.usage_type, lm.sort_order,
-                    mf.owner_user_id, mf.storage_key, mf.mime_type, mf.size_bytes, mf.status, mf.media_type, mf.deleted_at
+                    mf.owner_user_id, mf.storage_key, mf.mime_type, mf.size_bytes, mf.status, mf.media_type, mf.visibility, mf.deleted_at
              FROM listing_media lm
              INNER JOIN media_files mf ON mf.id = lm.media_file_id
              INNER JOIN listings l ON l.id = lm.listing_id
@@ -75,7 +74,6 @@ final class MediaRepository
                 AND lm.media_file_id = :media_file_id
                 AND l.owner_user_id = :listing_owner_user_id
                 AND mf.owner_user_id = :media_owner_user_id
-                AND mf.media_type = 'image'
              LIMIT 1"
         );
         $statement->execute([
@@ -89,7 +87,7 @@ final class MediaRepository
         return is_array($media) ? $this->normalize($media) : null;
     }
 
-    public function countActiveForListing(int $listingId): int
+    public function countActivePublicImagesForListing(int $listingId): int
     {
         $statement = $this->pdo->prepare(
             "SELECT COUNT(*)
@@ -97,6 +95,25 @@ final class MediaRepository
              INNER JOIN media_files mf ON mf.id = lm.media_file_id
              WHERE lm.listing_id = :listing_id
                 AND mf.media_type = 'image'
+                AND mf.visibility = 'public'
+                AND lm.usage_type IN ('cover', 'gallery', 'preview')
+                AND mf.status = 'active'
+                AND mf.deleted_at IS NULL"
+        );
+        $statement->execute(['listing_id' => $listingId]);
+
+        return (int) $statement->fetchColumn();
+    }
+
+    public function countActivePrivateContentForListing(int $listingId): int
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT COUNT(*)
+             FROM listing_media lm
+             INNER JOIN media_files mf ON mf.id = lm.media_file_id
+             WHERE lm.listing_id = :listing_id
+                AND lm.usage_type = 'private_content'
+                AND mf.visibility = 'private'
                 AND mf.status = 'active'
                 AND mf.deleted_at IS NULL"
         );
@@ -271,6 +288,26 @@ final class MediaRepository
         }
 
         return $grouped;
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function findPrivateMediaForListing(int $listingId): array
+    {
+        $media = $this->findByListing($listingId);
+        $private = [];
+
+        foreach ($media as $item) {
+            if (
+                $item['usage_type'] === 'private_content'
+                && $item['visibility'] === 'private'
+                && $item['status'] === 'active'
+                && in_array($item['media_type'], ['image', 'video'], true)
+            ) {
+                $private[] = $item;
+            }
+        }
+
+        return $private;
     }
 
     /** @param array<string, mixed> $media @return array<string, mixed> */

@@ -13,9 +13,11 @@ use Throwable;
 
 final class ListingMediaService
 {
-    private const ALLOWED_USAGE_TYPES = ['cover', 'gallery', 'preview'];
+    private const ALLOWED_USAGE_TYPES = ['cover', 'gallery', 'preview', 'private_content'];
+    private const PUBLIC_IMAGE_USAGE_TYPES = ['cover', 'gallery', 'preview'];
     private const EDITABLE_STATUSES = ['draft', 'rejected'];
-    private const MAX_IMAGES_PER_LISTING = 10;
+    private const MAX_PUBLIC_IMAGES_PER_LISTING = 10;
+    private const MAX_PRIVATE_CONTENT_PER_LISTING = 20;
 
     private \PDO $pdo;
     private ListingRepository $listings;
@@ -45,14 +47,22 @@ final class ListingMediaService
             throw new RuntimeException('Tipo de imagen no permitido.');
         }
 
-        if ($this->media->countActiveForListing($listingId) >= self::MAX_IMAGES_PER_LISTING) {
+        $prepared = $this->storage->prepareUpload($file, $usageType);
+
+        if ($usageType !== 'private_content' && $prepared['media_type'] !== 'image') {
+            throw new RuntimeException('Solo las imágenes pueden ser públicas.');
+        }
+
+        if ($usageType !== 'private_content' && $this->media->countActivePublicImagesForListing($listingId) >= self::MAX_PUBLIC_IMAGES_PER_LISTING) {
             throw new RuntimeException('Este listing ya tiene el máximo de 10 imágenes.');
         }
 
-        $prepared = $this->storage->prepareUpload($file);
+        if ($usageType === 'private_content' && $this->media->countActivePrivateContentForListing($listingId) >= self::MAX_PRIVATE_CONTENT_PER_LISTING) {
+            throw new RuntimeException('Este listing ya tiene el máximo de 20 contenidos privados.');
+        }
 
         if ($this->media->checksumExistsForListing($listingId, $prepared['checksum'])) {
-            throw new RuntimeException('Esta imagen ya está asociada al listing.');
+            throw new RuntimeException('Este archivo ya está asociado al listing.');
         }
 
         $moved = false;
@@ -66,6 +76,8 @@ final class ListingMediaService
             $mediaId = $this->media->createMedia([
                 'owner_user_id' => $ownerUserId,
                 'storage_key' => $prepared['storage_key'],
+                'media_type' => $prepared['media_type'],
+                'visibility' => $prepared['visibility'],
                 'mime_type' => $prepared['mime_type'],
                 'size_bytes' => $prepared['size_bytes'],
                 'checksum' => $prepared['checksum'],
@@ -104,7 +116,11 @@ final class ListingMediaService
         $this->editableOwnedListing($listingId, $ownerUserId);
         $media = $this->activeOwnedListingMedia($listingId, $mediaId, $ownerUserId);
 
-        if (!in_array($media['usage_type'], self::ALLOWED_USAGE_TYPES, true)) {
+        if (
+            !in_array($media['usage_type'], self::PUBLIC_IMAGE_USAGE_TYPES, true)
+            || $media['media_type'] !== 'image'
+            || $media['visibility'] !== 'public'
+        ) {
             return false;
         }
 
@@ -226,7 +242,7 @@ final class ListingMediaService
 
         if (
             $media['status'] !== 'active'
-            || $media['media_type'] !== 'image'
+            || !in_array($media['media_type'], ['image', 'video'], true)
             || $media['deleted_at'] !== null
         ) {
             throw new RuntimeException('forbidden');
