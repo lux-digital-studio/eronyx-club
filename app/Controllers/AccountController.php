@@ -23,6 +23,7 @@ final class AccountController
         return $this->view('account/index.php', [
             'csrf' => $this->csrf->token(),
             'logoutUrl' => $this->url('/logout'),
+            'creatorStatusUrl' => $this->url('/account/creator/status'),
         ]);
     }
 
