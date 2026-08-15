@@ -1,0 +1,11 @@
+ app/Controllers/MarketplaceController.php          |  25 [32m++[m[31m-[m
+ app/Controllers/MediaController.php                | 177 [32m+++++++++++++++++++[m[31m--[m
+ app/Repositories/MediaRepository.php               |  51 [32m+++++[m[31m-[m
+ .../PrivateContentAccessRepository.php             | 139 [32m++++++++++++++++[m
+ app/Services/ListingMediaService.php               |  30 [32m+++[m[31m-[m
+ app/Services/MediaStorageService.php               |  97 [32m++++++++[m[31m---[m
+ app/Services/PrivateContentAccessService.php       |  93 [32m+++++++++++[m
+ app/Views/creator/listings/media/index.php         |  23 [32m++[m[31m-[m
+ app/Views/marketplace/show.php                     |  15 [32m++[m
+ ..._000003_create_private_content_access_table.php |  53 [32m++++++[m
+ 10 files changed, 649 insertions(+), 54 deletions(-)
