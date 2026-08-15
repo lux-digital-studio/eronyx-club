@@ -9,7 +9,7 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title><?= $e($listing['title']) ?> - ERONYX</title>
+    <title>Revisar publicación - ERONYX</title>
 </head>
 <body>
     <main>
@@ -24,9 +24,6 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
 
             <dt>Tipo</dt>
             <dd><?= $e($listing['listing_type']) ?></dd>
-
-            <dt>Estado</dt>
-            <dd><?= $e($listing['status']) ?></dd>
 
             <dt>Precio</dt>
             <dd><?= $e($listing['price']) ?> <?= $e($listing['currency']) ?></dd>
@@ -43,6 +40,12 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
                 <?php endif; ?>
             </dd>
 
+            <dt>Owner user ID</dt>
+            <dd><?= $e($listing['owner_user_id']) ?></dd>
+
+            <dt>Estado</dt>
+            <dd><?= $e($listing['status']) ?></dd>
+
             <dt>Creada</dt>
             <dd><?= $e($listing['created_at']) ?></dd>
 
@@ -50,25 +53,17 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
             <dd><?= $e($listing['updated_at']) ?></dd>
         </dl>
 
-        <p>
-            <?php if ($listing['status'] === 'draft'): ?>
-                <a href="<?= $e($editUrl) ?>">Editar</a>
-                <form method="post" action="<?= $e($submitUrl) ?>">
-                    <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-                    <button type="submit">Enviar a revisión</button>
-                </form>
-            <?php elseif ($listing['status'] === 'rejected'): ?>
-                <a href="<?= $e($editUrl) ?>">Editar</a>
-            <?php elseif ($listing['status'] === 'pending_review'): ?>
-                Pendiente de revisión
-            <?php elseif ($listing['status'] === 'published'): ?>
-                Publicado
-                <?php if ($listing['visibility'] === 'public'): ?>
-                    <a href="<?= $e($publicUrl) ?>">Ver en marketplace</a>
-                <?php endif; ?>
-            <?php endif; ?>
-            <a href="<?= $e($indexUrl) ?>">Volver</a>
-        </p>
+        <form method="post" action="<?= $e($approveUrl) ?>">
+            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+            <button type="submit">Aprobar</button>
+        </form>
+
+        <form method="post" action="<?= $e($rejectUrl) ?>">
+            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+            <button type="submit">Rechazar</button>
+        </form>
+
+        <p><a href="<?= $e($indexUrl) ?>">Volver</a></p>
     </main>
 </body>
 </html>

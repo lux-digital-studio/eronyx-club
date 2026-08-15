@@ -99,7 +99,10 @@ final class CreatorListingController
         return $this->view('creator/listings/show.php', [
             'listing' => $listing,
             'categories' => $this->listings->findCategoriesForListing($listingId),
+            'csrf' => $this->csrf->token(),
             'editUrl' => $this->url('/creator/listings/' . $listingId . '/edit'),
+            'submitUrl' => $this->url('/creator/listings/' . $listingId . '/submit'),
+            'publicUrl' => $this->url('/marketplace/' . $listing['slug']),
             'indexUrl' => $this->url('/creator/listings'),
         ]);
     }
@@ -162,6 +165,38 @@ final class CreatorListingController
                 'listing' => 'No se pudo actualizar la publicación. Inténtalo de nuevo.',
             ], $listing, $this->oldCategoryIds());
         }
+
+        return null;
+    }
+
+    public function submit(string $id): ?string
+    {
+        if (!$this->csrf->validate($this->request->input('_csrf'))) {
+            return $this->rejectCsrf();
+        }
+
+        $listingId = $this->routeId($id);
+
+        if ($listingId === null) {
+            return $this->notFound();
+        }
+
+        $listing = $this->ownedListingOrResponse($listingId);
+
+        if (!is_array($listing)) {
+            return null;
+        }
+
+        if ($listing['status'] !== 'draft') {
+            return $this->forbidden();
+        }
+
+        if (!$this->service->submitForReview($listingId)) {
+            return $this->forbidden();
+        }
+
+        $this->csrf->regenerate();
+        $this->response->redirect($this->url('/creator/listings/' . $listingId));
 
         return null;
     }
@@ -263,7 +298,7 @@ final class CreatorListingController
     {
         $listing = $this->ownedListingOrResponse($listingId);
 
-        if ($listing !== null && $listing['status'] !== 'draft') {
+        if ($listing !== null && !in_array($listing['status'], ['draft', 'rejected'], true)) {
             $this->response->forbidden();
 
             return null;

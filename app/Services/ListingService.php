@@ -8,6 +8,7 @@ use App\Core\Auth;
 use App\Core\Database;
 use App\Repositories\CategoryRepository;
 use App\Repositories\ListingRepository;
+use App\Validators\ListingValidator;
 use RuntimeException;
 use Throwable;
 
@@ -15,15 +16,17 @@ final class ListingService
 {
     private \PDO $pdo;
     private ListingRepository $listings;
+    private CategoryRepository $categories;
 
     public function __construct(
         private readonly Auth $auth,
         ?\PDO $pdo = null,
         ?ListingRepository $listings = null,
-        private readonly ?CategoryRepository $categories = null
+        ?CategoryRepository $categories = null
     ) {
         $this->pdo = $pdo ?? (new Database())->connection();
         $this->listings = $listings ?? new ListingRepository($this->pdo);
+        $this->categories = $categories ?? new CategoryRepository($this->pdo);
     }
 
     /** @param array{title: string, description: string|null, listing_type: string, price: string, currency: string, visibility: string, category_ids: list<int>} $data */
@@ -68,7 +71,7 @@ final class ListingService
         try {
             $this->pdo->beginTransaction();
 
-            $updated = $this->listings->updateDraft($listingId, $ownerUserId, [
+            $updated = $this->listings->updateEditableDraft($listingId, $ownerUserId, [
                 'title' => $data['title'],
                 'slug' => $slug,
                 'description' => $data['description'],
@@ -95,6 +98,43 @@ final class ListingService
 
             throw $exception;
         }
+    }
+
+    public function submitForReview(int $listingId): bool
+    {
+        $ownerUserId = $this->ownerUserId();
+        $listing = $this->listings->findOwnedById($listingId, $ownerUserId);
+
+        if ($listing === null || $listing['status'] !== 'draft') {
+            return false;
+        }
+
+        $categoryIds = $this->listings->findCategoryIdsForListing($listingId);
+        $validation = (new ListingValidator($this->categories))->validate([
+            'title' => $listing['title'],
+            'description' => $listing['description'] ?? '',
+            'listing_type' => $listing['listing_type'],
+            'price' => $listing['price'],
+            'currency' => $listing['currency'],
+            'visibility' => $listing['visibility'],
+            'categories' => $categoryIds,
+        ]);
+
+        if (!$validation['valid']) {
+            return false;
+        }
+
+        return $this->listings->markPendingReview($listingId, $ownerUserId);
+    }
+
+    public function approve(int $listingId): bool
+    {
+        return $this->listings->approvePending($listingId);
+    }
+
+    public function reject(int $listingId): bool
+    {
+        return $this->listings->rejectPending($listingId);
     }
 
     private function uniqueSlug(string $title, ?int $ignoreListingId = null): string

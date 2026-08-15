@@ -18,7 +18,7 @@ final class ListingRepository
     {
         $statement = $this->pdo->prepare(
             'SELECT id, owner_user_id, creator_profile_id, title, slug, description, listing_type, status,
-                    price, currency, visibility, created_at, updated_at
+                    price, currency, visibility, published_at, created_at, updated_at
              FROM listings
              WHERE id = :id AND deleted_at IS NULL
              LIMIT 1'
@@ -34,7 +34,7 @@ final class ListingRepository
     {
         $statement = $this->pdo->prepare(
             'SELECT id, owner_user_id, creator_profile_id, title, slug, description, listing_type, status,
-                    price, currency, visibility, created_at, updated_at
+                    price, currency, visibility, published_at, created_at, updated_at
              FROM listings
              WHERE id = :id AND owner_user_id = :owner_user_id AND deleted_at IS NULL
              LIMIT 1'
@@ -60,6 +60,70 @@ final class ListingRepository
         $statement->execute(['owner_user_id' => $ownerUserId]);
 
         return array_map(fn (array $listing): array => $this->normalizeListing($listing), $statement->fetchAll());
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function findPendingReview(): array
+    {
+        $statement = $this->pdo->query(
+            "SELECT id, owner_user_id, title, slug, listing_type, status, price, currency, visibility, created_at, updated_at
+             FROM listings
+             WHERE status = 'pending_review' AND deleted_at IS NULL
+             ORDER BY updated_at ASC, id ASC"
+        );
+
+        return array_map(fn (array $listing): array => $this->normalizeListing($listing), $statement->fetchAll());
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findPendingReviewById(int $id): ?array
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT id, owner_user_id, creator_profile_id, title, slug, description, listing_type, status,
+                    price, currency, visibility, published_at, created_at, updated_at
+             FROM listings
+             WHERE id = :id AND status = 'pending_review' AND deleted_at IS NULL
+             LIMIT 1"
+        );
+        $statement->execute(['id' => $id]);
+        $listing = $statement->fetch();
+
+        return is_array($listing) ? $this->normalizeListing($listing) : null;
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function findPublishedPublic(): array
+    {
+        $statement = $this->pdo->query(
+            "SELECT id, title, slug, description, listing_type, price, currency, published_at
+             FROM listings
+             WHERE status = 'published'
+                AND visibility = 'public'
+                AND published_at IS NOT NULL
+                AND deleted_at IS NULL
+             ORDER BY published_at DESC, id DESC"
+        );
+
+        return array_map(fn (array $listing): array => $this->normalizeListing($listing), $statement->fetchAll());
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findPublishedPublicBySlug(string $slug): ?array
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT id, title, slug, description, listing_type, price, currency, published_at
+             FROM listings
+             WHERE slug = :slug
+                AND status = 'published'
+                AND visibility = 'public'
+                AND published_at IS NOT NULL
+                AND deleted_at IS NULL
+             LIMIT 1"
+        );
+        $statement->execute(['slug' => $slug]);
+        $listing = $statement->fetch();
+
+        return is_array($listing) ? $this->normalizeListing($listing) : null;
     }
 
     public function slugExists(string $slug, ?int $ignoreListingId = null): bool
@@ -97,7 +161,7 @@ final class ListingRepository
     }
 
     /** @param array{title: string, slug: string, description: string|null, listing_type: string, price: string, currency: string, visibility: string} $data */
-    public function updateDraft(int $id, int $ownerUserId, array $data): bool
+    public function updateEditableDraft(int $id, int $ownerUserId, array $data): bool
     {
         $statement = $this->pdo->prepare(
             "UPDATE listings
@@ -107,7 +171,28 @@ final class ListingRepository
                  listing_type = :listing_type,
                  price = :price,
                  currency = :currency,
-                 visibility = :visibility
+                 visibility = :visibility,
+                 status = 'draft',
+                 published_at = NULL
+             WHERE id = :id
+                AND owner_user_id = :owner_user_id
+                AND status IN ('draft', 'rejected')
+                AND deleted_at IS NULL"
+        );
+        $statement->execute([
+            'id' => $id,
+            'owner_user_id' => $ownerUserId,
+            ...$data,
+        ]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    public function markPendingReview(int $id, int $ownerUserId): bool
+    {
+        $statement = $this->pdo->prepare(
+            "UPDATE listings
+             SET status = 'pending_review'
              WHERE id = :id
                 AND owner_user_id = :owner_user_id
                 AND status = 'draft'
@@ -116,8 +201,36 @@ final class ListingRepository
         $statement->execute([
             'id' => $id,
             'owner_user_id' => $ownerUserId,
-            ...$data,
         ]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    public function approvePending(int $id): bool
+    {
+        $statement = $this->pdo->prepare(
+            "UPDATE listings
+             SET status = 'published',
+                 published_at = CURRENT_TIMESTAMP
+             WHERE id = :id
+                AND status = 'pending_review'
+                AND deleted_at IS NULL"
+        );
+        $statement->execute(['id' => $id]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    public function rejectPending(int $id): bool
+    {
+        $statement = $this->pdo->prepare(
+            "UPDATE listings
+             SET status = 'rejected'
+             WHERE id = :id
+                AND status = 'pending_review'
+                AND deleted_at IS NULL"
+        );
+        $statement->execute(['id' => $id]);
 
         return $statement->rowCount() === 1;
     }
@@ -160,6 +273,43 @@ final class ListingRepository
             ],
             $statement->fetchAll()
         );
+    }
+
+    /**
+     * @param list<int> $listingIds
+     * @return array<int, list<array{id: int, name: string, slug: string}>>
+     */
+    public function findCategoriesForListings(array $listingIds): array
+    {
+        $listingIds = array_values(array_unique(array_filter($listingIds, static fn (int $id): bool => $id > 0)));
+
+        if ($listingIds === []) {
+            return [];
+        }
+
+        $placeholders = implode(', ', array_fill(0, count($listingIds), '?'));
+        $statement = $this->pdo->prepare(
+            "SELECT lc.listing_id, c.id, c.name, c.slug
+             FROM listing_categories lc
+             INNER JOIN categories c ON c.id = lc.category_id
+             WHERE lc.listing_id IN ({$placeholders})
+             ORDER BY c.name ASC"
+        );
+        $statement->execute($listingIds);
+
+        $categories = [];
+
+        foreach ($statement->fetchAll() as $category) {
+            $listingId = (int) $category['listing_id'];
+            $categories[$listingId] ??= [];
+            $categories[$listingId][] = [
+                'id' => (int) $category['id'],
+                'name' => (string) $category['name'],
+                'slug' => (string) $category['slug'],
+            ];
+        }
+
+        return $categories;
     }
 
     /** @return list<int> */
