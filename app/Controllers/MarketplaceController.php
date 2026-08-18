@@ -11,6 +11,7 @@ use App\Core\Session;
 use App\Repositories\ListingRepository;
 use App\Repositories\MediaRepository;
 use App\Repositories\PrivateContentAccessRepository;
+use App\Repositories\ProfileRepository;
 use App\Services\PrivateContentAccessService;
 
 final class MarketplaceController
@@ -19,6 +20,7 @@ final class MarketplaceController
     private Auth $auth;
     private ListingRepository $listings;
     private MediaRepository $media;
+    private ProfileRepository $profiles;
     private PrivateContentAccessService $privateAccess;
 
     public function __construct()
@@ -29,6 +31,7 @@ final class MarketplaceController
         $pdo = (new Database())->connection();
         $this->listings = new ListingRepository($pdo);
         $this->media = new MediaRepository($pdo);
+        $this->profiles = new ProfileRepository($pdo);
         $this->privateAccess = new PrivateContentAccessService(
             new PrivateContentAccessRepository($pdo),
             $this->listings,
@@ -63,7 +66,7 @@ final class MarketplaceController
             return null;
         }
 
-        $listing = $this->listings->findPublishedPublicBySlug($slug);
+        $listing = $this->listings->findPublishedVisibleBySlug($slug);
 
         if ($listing === null) {
             $this->response->notFound();
@@ -75,6 +78,7 @@ final class MarketplaceController
         $privateMedia = $this->media->findPrivateMediaForListing($listingId);
         $canAccessPrivate = $this->privateAccess->canAccessListingPrivateContent($this->auth->id(), $listingId);
         $isOwner = $this->auth->id() !== null && (int) $listing['owner_user_id'] === $this->auth->id();
+        $creatorProfile = $this->profiles->findPublicCreatorByUserId((int) $listing['owner_user_id']);
 
         return $this->view('marketplace/show.php', [
             'listing' => $listing,
@@ -85,6 +89,8 @@ final class MarketplaceController
             'canAccessPrivateMedia' => $canAccessPrivate,
             'isOwner' => $isOwner,
             'checkoutUrl' => $this->url('/checkout/' . $listingId),
+            'creatorProfileUrl' => is_array($creatorProfile) ? $this->url('/creator/' . $creatorProfile['username']) : null,
+            'creatorUsername' => is_array($creatorProfile) ? $creatorProfile['username'] : null,
             'mediaBaseUrl' => $this->url('/media'),
             'indexUrl' => $this->url('/marketplace'),
         ]);

@@ -29,6 +29,21 @@ final class CreatorApplicationRepository
         return is_array($application) ? $this->normalize($application) : null;
     }
 
+    public function hasActiveCreatorProfile(int $userId): bool
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT 1
+             FROM creator_profiles
+             WHERE user_id = :user_id
+                AND status = 'active'
+                AND deleted_at IS NULL
+             LIMIT 1"
+        );
+        $statement->execute(['user_id' => $userId]);
+
+        return $statement->fetchColumn() !== false;
+    }
+
     /** @return array<string, mixed>|null */
     public function findPendingById(int $id): ?array
     {

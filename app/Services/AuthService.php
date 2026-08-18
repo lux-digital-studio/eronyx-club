@@ -73,7 +73,16 @@ final class AuthService
             return false;
         }
 
-        $this->loginUserId((int) $user['id']);
+        $userId = (int) $user['id'];
+
+        try {
+            $this->loginUserId($userId);
+            $this->users->updateLastLoginAt($userId);
+        } catch (Throwable) {
+            $this->logout();
+
+            return false;
+        }
 
         return true;
     }

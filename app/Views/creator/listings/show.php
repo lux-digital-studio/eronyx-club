@@ -15,6 +15,10 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
     <main>
         <h1><?= $e($listing['title']) ?></h1>
 
+        <?php if (($error ?? null) !== null && $error !== ''): ?>
+            <div role="alert"><p><?= $e($error) ?></p></div>
+        <?php endif; ?>
+
         <dl>
             <dt>Slug</dt>
             <dd><?= $e($listing['slug']) ?></dd>
@@ -63,7 +67,7 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
                 Pendiente de revisión
             <?php elseif ($listing['status'] === 'published'): ?>
                 Publicado
-                <?php if ($listing['visibility'] === 'public'): ?>
+                <?php if (in_array($listing['visibility'], ['public', 'unlisted'], true)): ?>
                     <a href="<?= $e($publicUrl) ?>">Ver en marketplace</a>
                 <?php endif; ?>
             <?php endif; ?>

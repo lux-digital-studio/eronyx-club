@@ -135,9 +135,21 @@ final class MediaController
             if (
                 in_array($row['usage_type'], ['cover', 'gallery', 'preview'], true)
                 && $row['listing_status'] === 'published'
-                && $row['listing_visibility'] === 'public'
+                && in_array($row['listing_visibility'], ['public', 'unlisted'], true)
                 && $row['published_at'] !== null
                 && $row['listing_deleted_at'] === null
+            ) {
+                return 'public';
+            }
+        }
+
+        foreach ($rows as $row) {
+            if (
+                $row['avatar_profile_id'] !== null
+                && $row['avatar_profile_deleted_at'] === null
+                && $row['media_type'] === 'image'
+                && $row['visibility'] === 'public'
+                && $row['status'] === 'active'
             ) {
                 return 'public';
             }

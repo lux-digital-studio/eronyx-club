@@ -9,7 +9,8 @@ use App\Repositories\UserRepository;
 final class RegisterValidator
 {
     public function __construct(
-        private readonly UserRepository $users
+        private readonly UserRepository $users,
+        private readonly UsernameValidator $usernames = new UsernameValidator()
     ) {
     }
 
@@ -20,7 +21,8 @@ final class RegisterValidator
     public function validate(array $input): array
     {
         $email = strtolower(trim((string) ($input['email'] ?? '')));
-        $username = strtolower(trim((string) ($input['username'] ?? '')));
+        $usernameCheck = $this->usernames->validate((string) ($input['username'] ?? ''));
+        $username = $usernameCheck['username'];
         $displayName = trim((string) ($input['display_name'] ?? ''));
         $password = (string) ($input['password'] ?? '');
         $confirmation = (string) ($input['password_confirmation'] ?? '');
@@ -37,12 +39,8 @@ final class RegisterValidator
             $errors['email'] = 'Este email ya está registrado.';
         }
 
-        if ($username === '') {
-            $errors['username'] = 'El nombre de usuario es obligatorio.';
-        } elseif (strlen($username) < 3 || strlen($username) > 50) {
-            $errors['username'] = 'El nombre de usuario debe tener entre 3 y 50 caracteres.';
-        } elseif (preg_match('/\A[a-z0-9_]+\z/', $username) !== 1) {
-            $errors['username'] = 'El nombre de usuario solo puede contener minúsculas, números y guiones bajos.';
+        if (!$usernameCheck['valid']) {
+            $errors['username'] = (string) $usernameCheck['error'];
         } elseif ($this->users->findByUsername($username) !== null) {
             $errors['username'] = 'Este nombre de usuario no está disponible.';
         }

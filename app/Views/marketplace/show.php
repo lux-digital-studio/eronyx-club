@@ -25,6 +25,10 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
             <p><?= $e($listing['description']) ?></p>
         <?php endif; ?>
 
+        <?php if ($creatorProfileUrl !== null): ?>
+            <p><a href="<?= $e($creatorProfileUrl) ?>">Ver perfil de @<?= $e($creatorUsername) ?></a></p>
+        <?php endif; ?>
+
         <?php if (!$isOwner): ?>
             <p><a href="<?= $e($checkoutUrl) ?>">Comprar / desbloquear</a></p>
         <?php endif; ?>

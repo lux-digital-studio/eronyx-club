@@ -17,7 +17,10 @@ use App\Controllers\ModeratorCreatorApplicationController;
 use App\Controllers\ModeratorController;
 use App\Controllers\ModeratorListingController;
 use App\Controllers\OrderController;
+use App\Controllers\ProfileController;
+use App\Controllers\PublicCreatorController;
 use App\Core\Router;
+use App\Middleware\ActiveCreatorMiddleware;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\GuestMiddleware;
 use App\Middleware\RoleMiddleware;
@@ -31,6 +34,10 @@ return static function (Router $router): void {
     $router->get('/account/orders', [OrderController::class, 'index'], [AuthMiddleware::class]);
     $router->get('/account/orders/{id}', [OrderController::class, 'show'], [AuthMiddleware::class]);
     $router->post('/account/orders/{id}/test-pay', [OrderController::class, 'testPay'], [AuthMiddleware::class]);
+    $router->get('/account/profile', [ProfileController::class, 'edit'], [AuthMiddleware::class]);
+    $router->post('/account/profile', [ProfileController::class, 'update'], [AuthMiddleware::class]);
+    $router->post('/account/profile/avatar', [ProfileController::class, 'uploadAvatar'], [AuthMiddleware::class]);
+    $router->post('/account/profile/avatar/delete', [ProfileController::class, 'deleteAvatar'], [AuthMiddleware::class]);
     $router->get('/account/creator/apply', [CreatorApplicationController::class, 'showApply'], [AuthMiddleware::class]);
     $router->post('/account/creator/apply', [CreatorApplicationController::class, 'apply'], [AuthMiddleware::class]);
     $router->get('/account/creator/status', [CreatorApplicationController::class, 'status'], [AuthMiddleware::class]);
@@ -39,51 +46,64 @@ return static function (Router $router): void {
     $router->get('/creator', [CreatorController::class, 'index'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
+        ActiveCreatorMiddleware::class,
     ]);
     $router->get('/creator/listings', [CreatorListingController::class, 'index'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
+        ActiveCreatorMiddleware::class,
     ]);
     $router->get('/creator/listings/create', [CreatorListingController::class, 'create'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
+        ActiveCreatorMiddleware::class,
     ]);
     $router->post('/creator/listings', [CreatorListingController::class, 'store'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
+        ActiveCreatorMiddleware::class,
     ]);
     $router->get('/creator/listings/{id}', [CreatorListingController::class, 'show'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
+        ActiveCreatorMiddleware::class,
     ]);
     $router->get('/creator/listings/{id}/edit', [CreatorListingController::class, 'edit'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
+        ActiveCreatorMiddleware::class,
     ]);
     $router->post('/creator/listings/{id}', [CreatorListingController::class, 'update'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
+        ActiveCreatorMiddleware::class,
     ]);
     $router->post('/creator/listings/{id}/submit', [CreatorListingController::class, 'submit'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
+        ActiveCreatorMiddleware::class,
     ]);
     $router->get('/creator/listings/{id}/media', [CreatorMediaController::class, 'index'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
+        ActiveCreatorMiddleware::class,
     ]);
     $router->post('/creator/listings/{id}/media', [CreatorMediaController::class, 'store'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
+        ActiveCreatorMiddleware::class,
     ]);
     $router->post('/creator/listings/{id}/media/{mediaId}/cover', [CreatorMediaController::class, 'setCover'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
+        ActiveCreatorMiddleware::class,
     ]);
     $router->post('/creator/listings/{id}/media/{mediaId}/delete', [CreatorMediaController::class, 'destroy'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
+        ActiveCreatorMiddleware::class,
     ]);
+    $router->get('/creator/{username}', [PublicCreatorController::class, 'show']);
     $router->get('/moderator', [ModeratorController::class, 'index'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['moderator']]],

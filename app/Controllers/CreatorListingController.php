@@ -14,6 +14,7 @@ use App\Repositories\CategoryRepository;
 use App\Repositories\ListingRepository;
 use App\Services\ListingService;
 use App\Validators\ListingValidator;
+use RuntimeException;
 use Throwable;
 
 final class CreatorListingController
@@ -96,16 +97,7 @@ final class CreatorListingController
             return null;
         }
 
-        return $this->view('creator/listings/show.php', [
-            'listing' => $listing,
-            'categories' => $this->listings->findCategoriesForListing($listingId),
-            'csrf' => $this->csrf->token(),
-            'editUrl' => $this->url('/creator/listings/' . $listingId . '/edit'),
-            'submitUrl' => $this->url('/creator/listings/' . $listingId . '/submit'),
-            'publicUrl' => $this->url('/marketplace/' . $listing['slug']),
-            'mediaUrl' => $this->url('/creator/listings/' . $listingId . '/media'),
-            'indexUrl' => $this->url('/creator/listings'),
-        ]);
+        return $this->listingShow($listing);
     }
 
     public function edit(string $id): ?string
@@ -192,7 +184,15 @@ final class CreatorListingController
             return $this->forbidden();
         }
 
-        if (!$this->service->submitForReview($listingId)) {
+        try {
+            if (!$this->service->submitForReview($listingId)) {
+                return $this->forbidden();
+            }
+        } catch (RuntimeException $exception) {
+            if ($exception->getMessage() === 'cover_required') {
+                return $this->listingShow($listing, 'Debes añadir una portada antes de enviar el anuncio a revisión.');
+            }
+
             return $this->forbidden();
         }
 
@@ -306,6 +306,24 @@ final class CreatorListingController
         }
 
         return $listing;
+    }
+
+    /** @param array<string, mixed> $listing */
+    private function listingShow(array $listing, ?string $error = null): string
+    {
+        $listingId = (int) $listing['id'];
+
+        return $this->view('creator/listings/show.php', [
+            'listing' => $listing,
+            'categories' => $this->listings->findCategoriesForListing($listingId),
+            'csrf' => $this->csrf->token(),
+            'error' => $error,
+            'editUrl' => $this->url('/creator/listings/' . $listingId . '/edit'),
+            'submitUrl' => $this->url('/creator/listings/' . $listingId . '/submit'),
+            'publicUrl' => $this->url('/marketplace/' . $listing['slug']),
+            'mediaUrl' => $this->url('/creator/listings/' . $listingId . '/media'),
+            'indexUrl' => $this->url('/creator/listings'),
+        ]);
     }
 
     private function ownerUserId(): int

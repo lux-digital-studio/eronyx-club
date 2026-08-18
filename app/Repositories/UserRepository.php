@@ -29,7 +29,11 @@ final class UserRepository
     public function findByUsername(string $username): ?array
     {
         $statement = $this->pdo->prepare(
-            'SELECT id, user_id, username FROM profiles WHERE username = :username AND deleted_at IS NULL LIMIT 1'
+            'SELECT id, user_id, username
+             FROM profiles
+             WHERE LOWER(username) = :username
+                AND deleted_at IS NULL
+             LIMIT 1'
         );
         $statement->execute(['username' => $username]);
         $profile = $statement->fetch();
@@ -49,6 +53,23 @@ final class UserRepository
         ]);
 
         return (int) $this->pdo->lastInsertId();
+    }
+
+    public function updateLastLoginAt(int $userId): bool
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE users
+             SET last_login_at = CURRENT_TIMESTAMP
+             WHERE id = :id
+                AND deleted_at IS NULL
+                AND status = :status'
+        );
+        $statement->execute([
+            'id' => $userId,
+            'status' => 'active',
+        ]);
+
+        return true;
     }
 
     public function createProfile(int $userId, string $displayName, string $username): void

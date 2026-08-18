@@ -8,6 +8,7 @@ use App\Core\Auth;
 use App\Core\Database;
 use App\Repositories\CategoryRepository;
 use App\Repositories\ListingRepository;
+use App\Repositories\MediaRepository;
 use App\Validators\ListingValidator;
 use RuntimeException;
 use Throwable;
@@ -17,16 +18,19 @@ final class ListingService
     private \PDO $pdo;
     private ListingRepository $listings;
     private CategoryRepository $categories;
+    private MediaRepository $media;
 
     public function __construct(
         private readonly Auth $auth,
         ?\PDO $pdo = null,
         ?ListingRepository $listings = null,
-        ?CategoryRepository $categories = null
+        ?CategoryRepository $categories = null,
+        ?MediaRepository $media = null
     ) {
         $this->pdo = $pdo ?? (new Database())->connection();
         $this->listings = $listings ?? new ListingRepository($this->pdo);
         $this->categories = $categories ?? new CategoryRepository($this->pdo);
+        $this->media = $media ?? new MediaRepository($this->pdo);
     }
 
     /** @param array{title: string, description: string|null, listing_type: string, price: string, currency: string, visibility: string, category_ids: list<int>} $data */
@@ -122,6 +126,10 @@ final class ListingService
 
         if (!$validation['valid']) {
             return false;
+        }
+
+        if (!$this->media->hasValidCoverForListing($listingId)) {
+            throw new RuntimeException('cover_required');
         }
 
         return $this->listings->markPendingReview($listingId, $ownerUserId);

@@ -142,6 +142,25 @@ final class MediaRepository
         return $statement->fetchColumn() !== false;
     }
 
+    public function hasValidCoverForListing(int $listingId): bool
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT 1
+             FROM listing_media lm
+             INNER JOIN media_files mf ON mf.id = lm.media_file_id
+             WHERE lm.listing_id = :listing_id
+                AND lm.usage_type = 'cover'
+                AND mf.media_type = 'image'
+                AND mf.visibility = 'public'
+                AND mf.status = 'active'
+                AND mf.deleted_at IS NULL
+             LIMIT 1"
+        );
+        $statement->execute(['listing_id' => $listingId]);
+
+        return $statement->fetchColumn() !== false;
+    }
+
     public function nextSortOrder(int $listingId, string $usageType): int
     {
         $statement = $this->pdo->prepare(
@@ -198,10 +217,34 @@ final class MediaRepository
 
     public function countReferences(int $mediaFileId): int
     {
-        $statement = $this->pdo->prepare('SELECT COUNT(*) FROM listing_media WHERE media_file_id = :media_file_id');
-        $statement->execute(['media_file_id' => $mediaFileId]);
+        $statement = $this->pdo->prepare(
+            'SELECT (
+                (SELECT COUNT(*) FROM listing_media WHERE media_file_id = :listing_media_file_id)
+                +
+                (SELECT COUNT(*) FROM profiles WHERE avatar_media_id = :avatar_media_file_id AND deleted_at IS NULL)
+             )'
+        );
+        $statement->execute([
+            'listing_media_file_id' => $mediaFileId,
+            'avatar_media_file_id' => $mediaFileId,
+        ]);
 
         return (int) $statement->fetchColumn();
+    }
+
+    /** @return array<string, mixed>|null */
+    public function findById(int $mediaFileId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT id, owner_user_id, storage_key, mime_type, size_bytes, status, media_type, visibility, deleted_at
+             FROM media_files
+             WHERE id = :id
+             LIMIT 1'
+        );
+        $statement->execute(['id' => $mediaFileId]);
+        $media = $statement->fetch();
+
+        return is_array($media) ? $this->normalize($media) : null;
     }
 
     public function softDeleteMedia(int $mediaFileId): bool
@@ -224,10 +267,12 @@ final class MediaRepository
                     mf.media_type, mf.visibility, mf.deleted_at,
                     lm.listing_id, lm.usage_type,
                     l.owner_user_id AS listing_owner_user_id, l.status AS listing_status,
-                    l.visibility AS listing_visibility, l.published_at, l.deleted_at AS listing_deleted_at
+                    l.visibility AS listing_visibility, l.published_at, l.deleted_at AS listing_deleted_at,
+                    p.id AS avatar_profile_id, p.deleted_at AS avatar_profile_deleted_at
              FROM media_files mf
              LEFT JOIN listing_media lm ON lm.media_file_id = mf.id
              LEFT JOIN listings l ON l.id = lm.listing_id
+             LEFT JOIN profiles p ON p.avatar_media_id = mf.id
              WHERE mf.id = :id"
         );
         $statement->execute(['id' => $mediaFileId]);
@@ -313,7 +358,7 @@ final class MediaRepository
     /** @param array<string, mixed> $media @return array<string, mixed> */
     private function normalize(array $media): array
     {
-        foreach (['id', 'owner_user_id', 'listing_id', 'media_file_id', 'relation_id', 'sort_order', 'size_bytes', 'listing_owner_user_id'] as $key) {
+        foreach (['id', 'owner_user_id', 'listing_id', 'media_file_id', 'relation_id', 'sort_order', 'size_bytes', 'listing_owner_user_id', 'avatar_profile_id'] as $key) {
             if (array_key_exists($key, $media) && $media[$key] !== null) {
                 $media[$key] = (int) $media[$key];
             }

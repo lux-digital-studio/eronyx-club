@@ -15,6 +15,7 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
     <main>
         <h1>ERONYX - Mi cuenta</h1>
         <p>Sesion iniciada correctamente.</p>
+        <p><a href="<?= $e($profileUrl) ?>">Editar perfil</a></p>
         <p><a href="<?= $e($ordersUrl) ?>">Mis pedidos</a></p>
         <p><a href="<?= $e($creatorStatusUrl) ?>">Estado creator</a></p>
 

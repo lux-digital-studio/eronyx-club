@@ -126,6 +126,43 @@ final class ListingRepository
         return is_array($listing) ? $this->normalizeListing($listing) : null;
     }
 
+    /** @return array<string, mixed>|null */
+    public function findPublishedVisibleBySlug(string $slug): ?array
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT id, owner_user_id, title, slug, description, listing_type, price, currency, visibility, published_at
+             FROM listings
+             WHERE slug = :slug
+                AND status = 'published'
+                AND visibility IN ('public', 'unlisted')
+                AND published_at IS NOT NULL
+                AND deleted_at IS NULL
+             LIMIT 1"
+        );
+        $statement->execute(['slug' => $slug]);
+        $listing = $statement->fetch();
+
+        return is_array($listing) ? $this->normalizeListing($listing) : null;
+    }
+
+    /** @return list<array<string, mixed>> */
+    public function findPublishedPublicByOwner(int $ownerUserId): array
+    {
+        $statement = $this->pdo->prepare(
+            "SELECT id, owner_user_id, title, slug, description, listing_type, price, currency, visibility, published_at
+             FROM listings
+             WHERE owner_user_id = :owner_user_id
+                AND status = 'published'
+                AND visibility = 'public'
+                AND published_at IS NOT NULL
+                AND deleted_at IS NULL
+             ORDER BY published_at DESC, id DESC"
+        );
+        $statement->execute(['owner_user_id' => $ownerUserId]);
+
+        return array_map(fn (array $listing): array => $this->normalizeListing($listing), $statement->fetchAll());
+    }
+
     public function slugExists(string $slug, ?int $ignoreListingId = null): bool
     {
         $sql = 'SELECT 1 FROM listings WHERE slug = :slug';

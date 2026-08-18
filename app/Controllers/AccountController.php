@@ -24,6 +24,7 @@ final class AccountController
             'csrf' => $this->csrf->token(),
             'logoutUrl' => $this->url('/logout'),
             'ordersUrl' => $this->url('/account/orders'),
+            'profileUrl' => $this->url('/account/profile'),
             'creatorStatusUrl' => $this->url('/account/creator/status'),
         ]);
     }
