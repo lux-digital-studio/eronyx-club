@@ -14,6 +14,7 @@ use App\Controllers\CreatorMediaController;
 use App\Controllers\FavoriteController;
 use App\Controllers\MarketplaceController;
 use App\Controllers\MediaController;
+use App\Controllers\MessageController;
 use App\Controllers\ModeratorCreatorApplicationController;
 use App\Controllers\ModeratorController;
 use App\Controllers\ModeratorListingController;
@@ -33,6 +34,10 @@ return static function (Router $router): void {
     $router->get('/media/{id}', [MediaController::class, 'show']);
     $router->get('/account', [AccountController::class, 'index'], [AuthMiddleware::class]);
     $router->get('/account/favorites', [FavoriteController::class, 'index'], [AuthMiddleware::class]);
+    $router->get('/account/messages', [MessageController::class, 'index'], [AuthMiddleware::class]);
+    $router->get('/account/messages/{id}', [MessageController::class, 'show'], [AuthMiddleware::class]);
+    $router->post('/account/messages/{id}', [MessageController::class, 'send'], [AuthMiddleware::class]);
+    $router->post('/messages/start/{listingId}', [MessageController::class, 'start'], [AuthMiddleware::class]);
     $router->post('/favorites/{listingId}', [FavoriteController::class, 'store'], [AuthMiddleware::class]);
     $router->post('/favorites/{listingId}/delete', [FavoriteController::class, 'destroy'], [AuthMiddleware::class]);
     $router->get('/account/orders', [OrderController::class, 'index'], [AuthMiddleware::class]);

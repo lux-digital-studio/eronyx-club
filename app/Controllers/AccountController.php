@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Auth;
 use App\Core\Csrf;
+use App\Core\Database;
 use App\Core\Session;
+use App\Repositories\ConversationRepository;
 
 final class AccountController
 {
@@ -20,11 +23,22 @@ final class AccountController
 
     public function index(): string
     {
+        $auth = new Auth($this->session);
+        $unreadCount = 0;
+        $userId = $auth->id();
+
+        if ($userId !== null) {
+            $unreadCount = (new ConversationRepository((new Database())->connection()))
+                ->unreadConversationCount($userId);
+        }
+
         return $this->view('account/index.php', [
             'csrf' => $this->csrf->token(),
             'logoutUrl' => $this->url('/logout'),
             'ordersUrl' => $this->url('/account/orders'),
             'favoritesUrl' => $this->url('/account/favorites'),
+            'messagesUrl' => $this->url('/account/messages'),
+            'unreadCount' => $unreadCount,
             'profileUrl' => $this->url('/account/profile'),
             'creatorStatusUrl' => $this->url('/account/creator/status'),
         ]);

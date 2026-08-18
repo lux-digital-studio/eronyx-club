@@ -24,6 +24,12 @@ ob_start();
             <h2 class="action-card-title">Mis favoritos</h2>
             <p class="action-card-copy">Publicaciones que has guardado.</p>
         </a>
+        <a class="action-card" href="<?= $e($messagesUrl) ?>">
+            <h2 class="action-card-title">
+                Mensajes<?php if (($unreadCount ?? 0) > 0): ?> (<?= $e((string) $unreadCount) ?>)<?php endif; ?>
+            </h2>
+            <p class="action-card-copy">Conversaciones con creators y buyers.</p>
+        </a>
         <a class="action-card" href="<?= $e($creatorStatusUrl) ?>">
             <h2 class="action-card-title">Estado creator</h2>
             <p class="action-card-copy">Solicitud y acceso a la zona creator.</p>

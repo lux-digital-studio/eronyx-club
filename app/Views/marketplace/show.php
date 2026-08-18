@@ -135,6 +135,14 @@ ob_start();
             <?php if (!$isOwner): ?>
                 <div class="cta-row">
                     <a class="btn btn-primary" href="<?= $e($checkoutUrl) ?>">Comprar / Desbloquear</a>
+                    <?php if (!empty($canContact) && !empty($isAuthenticated) && is_string($csrf ?? null)): ?>
+                        <form method="post" action="<?= $e($startConversationUrl) ?>">
+                            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                            <button class="btn btn-secondary" type="submit">Contactar con creator</button>
+                        </form>
+                    <?php elseif (!empty($canContact)): ?>
+                        <a class="btn btn-secondary" href="<?= $e($loginUrl) ?>">Contactar con creator</a>
+                    <?php endif; ?>
                     <?php if (!empty($canFavorite) && is_string($csrf ?? null)): ?>
                         <form method="post" action="<?= $e($isFavorite ? $favoriteDestroyUrl : $favoriteStoreUrl) ?>">
                             <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use App\Repositories\ConversationRepository;
 use App\Repositories\CreatorApplicationRepository;
 use App\Repositories\UserRepository;
 
@@ -18,7 +19,8 @@ final class Nav
      *   path: string,
      *   showCreator: bool,
      *   showModerator: bool,
-     *   showAdmin: bool
+     *   showAdmin: bool,
+     *   unreadCount: int
      * }
      */
     public static function context(): array
@@ -30,6 +32,7 @@ final class Nav
         $showModerator = false;
         $showAdmin = false;
         $csrf = null;
+        $unreadCount = 0;
 
         if ($authenticated) {
             $pdo = (new Database())->connection();
@@ -43,6 +46,12 @@ final class Nav
                     && (new CreatorApplicationRepository($pdo))->hasActiveCreatorProfile($userId);
             }
 
+            $userId = $auth->id();
+
+            if ($userId !== null) {
+                $unreadCount = (new ConversationRepository($pdo))->unreadConversationCount($userId);
+            }
+
             $csrf = (new Csrf($session))->token();
         }
 
@@ -53,6 +62,7 @@ final class Nav
             'showCreator' => $showCreator,
             'showModerator' => $showModerator,
             'showAdmin' => $showAdmin,
+            'unreadCount' => $unreadCount,
         ];
     }
 }

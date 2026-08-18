@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** @var array{authenticated: bool, csrf: string|null, path: string, showCreator: bool, showModerator: bool, showAdmin: bool} $nav */
+/** @var array{authenticated: bool, csrf: string|null, path: string, showCreator: bool, showModerator: bool, showAdmin: bool, unreadCount: int} $nav */
 
 $e = static fn (mixed $value): string => \App\Core\Layout::escape($value);
 $url = static fn (string $path): string => \App\Core\Layout::url($path);
@@ -12,7 +12,10 @@ $active = static function (string $target) use ($path): string {
     $isActive = match ($target) {
         '/' => $path === '/',
         '/marketplace' => $path === '/marketplace' || str_starts_with($path, '/marketplace/'),
-        '/account' => $path === '/account' || str_starts_with($path, '/account/'),
+        '/account' => $path === '/account' || (
+            str_starts_with($path, '/account/') && !str_starts_with($path, '/account/messages')
+        ),
+        '/account/messages' => $path === '/account/messages' || str_starts_with($path, '/account/messages/'),
         '/creator' => $path === '/creator' || str_starts_with($path, '/creator/listings'),
         '/moderator' => $path === '/moderator' || str_starts_with($path, '/moderator/'),
         '/admin' => $path === '/admin' || str_starts_with($path, '/admin/'),
@@ -40,6 +43,9 @@ $active = static function (string $target) use ($path): string {
                 <a class="nav-link" href="<?= $e($url('/marketplace')) ?>"<?= $active('/marketplace') ?>>Marketplace</a>
 
                 <?php if ($nav['authenticated']): ?>
+                    <a class="nav-link" href="<?= $e($url('/account/messages')) ?>"<?= $active('/account/messages') ?>>
+                        Mensajes<?php if (($nav['unreadCount'] ?? 0) > 0): ?> (<?= $e((string) $nav['unreadCount']) ?>)<?php endif; ?>
+                    </a>
                     <a class="nav-link" href="<?= $e($url('/account')) ?>"<?= $active('/account') ?>>Mi cuenta</a>
                     <?php if ($nav['showCreator']): ?>
                         <a class="nav-link" href="<?= $e($url('/creator')) ?>"<?= $active('/creator') ?>>Creator</a>
