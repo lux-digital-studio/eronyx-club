@@ -6,30 +6,27 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
 ob_start();
 ?>
 <div class="container">
-    <h1><?= $e($listing['title']) ?></h1>
+    <header class="page-header">
+        <div class="listing-meta">
+            <span class="<?= $e(\App\Core\Layout::statusBadgeClass((string) $listing['status'])) ?>">
+                <?= $e(\App\Core\Layout::statusLabel((string) $listing['status'])) ?>
+            </span>
+            <span class="badge"><?= $e(\App\Core\Layout::listingTypeLabel((string) $listing['listing_type'])) ?></span>
+        </div>
+        <h1 class="page-title"><?= $e($listing['title']) ?></h1>
+        <p class="listing-price"><?= $e(\App\Core\Layout::formatPrice($listing['price'], $listing['currency'])) ?></p>
+    </header>
 
     <?php if (($error ?? null) !== null && $error !== ''): ?>
         <div class="alert alert-error" role="alert"><p><?= $e($error) ?></p></div>
     <?php endif; ?>
 
     <dl class="definition-list">
-        <dt>Slug</dt>
-        <dd><?= $e($listing['slug']) ?></dd>
-
         <dt>Descripción</dt>
         <dd><?= $e($listing['description'] ?? '') ?></dd>
 
-        <dt>Tipo</dt>
-        <dd><?= $e($listing['listing_type']) ?></dd>
-
-        <dt>Estado</dt>
-        <dd><?= $e($listing['status']) ?></dd>
-
-        <dt>Precio</dt>
-        <dd><?= $e($listing['price']) ?> <?= $e($listing['currency']) ?></dd>
-
         <dt>Visibilidad</dt>
-        <dd><?= $e($listing['visibility']) ?></dd>
+        <dd><?= $e(\App\Core\Layout::visibilityLabel((string) $listing['visibility'])) ?></dd>
 
         <dt>Categorías</dt>
         <dd>
@@ -61,10 +58,10 @@ ob_start();
         <?php elseif ($listing['status'] === 'published'): ?>
             <span class="badge badge-published">Publicado</span>
             <?php if (in_array($listing['visibility'], ['public', 'unlisted'], true)): ?>
-                <a href="<?= $e($publicUrl) ?>">Ver en marketplace</a>
+                <a class="btn btn-ghost" href="<?= $e($publicUrl) ?>">Ver en marketplace</a>
             <?php endif; ?>
         <?php endif; ?>
-        <a href="<?= $e($mediaUrl) ?>">Gestionar imágenes</a>
+        <a class="btn btn-ghost" href="<?= $e($mediaUrl) ?>">Gestionar imágenes</a>
         <a class="link-muted" href="<?= $e($indexUrl) ?>">Volver</a>
     </div>
 </div>

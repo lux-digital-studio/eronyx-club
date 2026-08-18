@@ -36,27 +36,34 @@ $active = static function (string $target) use ($path): string {
         </label>
 
         <nav id="site-nav" class="site-nav" aria-label="Principal">
-            <a class="nav-link" href="<?= $e($url('/marketplace')) ?>"<?= $active('/marketplace') ?>>Marketplace</a>
+            <div class="nav-links">
+                <a class="nav-link" href="<?= $e($url('/marketplace')) ?>"<?= $active('/marketplace') ?>>Marketplace</a>
 
-            <?php if ($nav['authenticated']): ?>
-                <a class="nav-link" href="<?= $e($url('/account')) ?>"<?= $active('/account') ?>>Mi cuenta</a>
-                <?php if ($nav['showCreator']): ?>
-                    <a class="nav-link" href="<?= $e($url('/creator')) ?>"<?= $active('/creator') ?>>Creator</a>
+                <?php if ($nav['authenticated']): ?>
+                    <a class="nav-link" href="<?= $e($url('/account')) ?>"<?= $active('/account') ?>>Mi cuenta</a>
+                    <?php if ($nav['showCreator']): ?>
+                        <a class="nav-link" href="<?= $e($url('/creator')) ?>"<?= $active('/creator') ?>>Creator</a>
+                    <?php endif; ?>
+                    <?php if ($nav['showModerator']): ?>
+                        <a class="nav-link" href="<?= $e($url('/moderator')) ?>"<?= $active('/moderator') ?>>Moderación</a>
+                    <?php endif; ?>
+                    <?php if ($nav['showAdmin']): ?>
+                        <a class="nav-link" href="<?= $e($url('/admin')) ?>"<?= $active('/admin') ?>>Admin</a>
+                    <?php endif; ?>
                 <?php endif; ?>
-                <?php if ($nav['showModerator']): ?>
-                    <a class="nav-link" href="<?= $e($url('/moderator')) ?>"<?= $active('/moderator') ?>>Moderación</a>
+            </div>
+
+            <div class="nav-end">
+                <?php if ($nav['authenticated']): ?>
+                    <form class="nav-logout" method="post" action="<?= $e($url('/logout')) ?>">
+                        <input type="hidden" name="_csrf" value="<?= $e($nav['csrf'] ?? '') ?>">
+                        <button class="btn btn-ghost" type="submit">Cerrar sesión</button>
+                    </form>
+                <?php else: ?>
+                    <a class="nav-link" href="<?= $e($url('/login')) ?>">Iniciar sesión</a>
+                    <a class="btn btn-primary" href="<?= $e($url('/register')) ?>">Crear cuenta</a>
                 <?php endif; ?>
-                <?php if ($nav['showAdmin']): ?>
-                    <a class="nav-link" href="<?= $e($url('/admin')) ?>"<?= $active('/admin') ?>>Admin</a>
-                <?php endif; ?>
-                <form class="nav-logout" method="post" action="<?= $e($url('/logout')) ?>">
-                    <input type="hidden" name="_csrf" value="<?= $e($nav['csrf'] ?? '') ?>">
-                    <button class="btn btn-ghost" type="submit">Cerrar sesión</button>
-                </form>
-            <?php else: ?>
-                <a class="nav-link" href="<?= $e($url('/login')) ?>">Iniciar sesión</a>
-                <a class="btn btn-primary" href="<?= $e($url('/register')) ?>">Crear cuenta</a>
-            <?php endif; ?>
+            </div>
         </nav>
     </div>
 </header>

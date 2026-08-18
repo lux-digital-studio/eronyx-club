@@ -7,6 +7,10 @@ ob_start();
 ?>
 <div class="auth-shell">
     <div class="auth-card">
+        <a class="auth-brand brand" href="<?= $e(\App\Core\Layout::url('/')) ?>">
+            <span class="brand-mark" aria-hidden="true"></span>
+            <span class="brand-text">ERONYX</span>
+        </a>
         <h1>Crear cuenta</h1>
         <p class="auth-lead">Regístrate para comprar y seguir creators.</p>
 
@@ -24,7 +28,7 @@ ob_start();
             <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
 
             <div class="form-group">
-                <label for="display_name">Nombre publico</label>
+                <label for="display_name">Nombre público</label>
                 <input id="display_name" type="text" name="display_name" value="<?= $e($old['display_name'] ?? '') ?>" required maxlength="100">
             </div>
 
@@ -39,19 +43,19 @@ ob_start();
             </div>
 
             <div class="form-group">
-                <label for="password">Contrasena</label>
+                <label for="password">Contraseña</label>
                 <input id="password" type="password" name="password" required minlength="10" maxlength="255" autocomplete="new-password">
             </div>
 
             <div class="form-group">
-                <label for="password_confirmation">Confirmar contrasena</label>
+                <label for="password_confirmation">Confirmar contraseña</label>
                 <input id="password_confirmation" type="password" name="password_confirmation" required minlength="10" maxlength="255" autocomplete="new-password">
             </div>
 
             <button class="btn btn-primary" type="submit">Registrarme</button>
         </form>
 
-        <p><a href="<?= $e($loginUrl) ?>">Ya tengo cuenta</a></p>
+        <p class="auth-footer">¿Ya tienes cuenta? <a href="<?= $e($loginUrl) ?>">Iniciar sesión</a></p>
     </div>
 </div>
 <?php

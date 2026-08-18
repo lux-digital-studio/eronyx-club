@@ -6,20 +6,24 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
 ob_start();
 ?>
 <div class="container">
-    <h1>Solicitudes creator</h1>
+    <header class="page-header">
+        <h1 class="page-title">Solicitudes creator</h1>
+        <p class="page-subtitle">Cola de solicitudes pendientes.</p>
+    </header>
 
     <?php if ($applications === []): ?>
         <div class="empty-state">
             <p>No hay solicitudes pendientes.</p>
         </div>
     <?php else: ?>
-        <ul>
+        <ul class="queue-list">
             <?php foreach ($applications as $application): ?>
-                <li>
-                    <a href="<?= $e($baseUrl . '/' . $application['id']) ?>">
-                        <?= $e($application['display_name']) ?> (@<?= $e($application['username']) ?>)
-                    </a>
-                    <span class="muted"><?= $e($application['created_at']) ?></span>
+                <li class="queue-item">
+                    <div>
+                        <strong><?= $e($application['display_name']) ?></strong>
+                        <p class="muted">@<?= $e($application['username']) ?> · <?= $e($application['created_at']) ?></p>
+                    </div>
+                    <a class="btn btn-secondary" href="<?= $e($baseUrl . '/' . $application['id']) ?>">Revisar</a>
                 </li>
             <?php endforeach; ?>
         </ul>

@@ -3,66 +3,142 @@
 declare(strict_types=1);
 
 $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+$coverItems = $mediaGroups['cover'] ?? [];
+$galleryItems = $mediaGroups['gallery'] ?? [];
+$previewItems = $mediaGroups['preview'] ?? [];
 ob_start();
 ?>
 <div class="container">
-    <article class="card">
-        <div class="card-body">
-            <h1><?= $e($listing['title']) ?></h1>
-            <?php foreach ($mediaGroups['cover'] as $item): ?>
-                <img class="media-cover" src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>" alt="" width="240">
-            <?php endforeach; ?>
-
-            <p><?= $e($listing['price']) ?> <?= $e($listing['currency']) ?></p>
-            <p><?= $e($listing['listing_type']) ?></p>
-
-            <?php if (($listing['description'] ?? '') !== ''): ?>
-                <p><?= $e($listing['description']) ?></p>
+    <article class="listing-detail">
+        <div class="listing-detail-media">
+            <?php if ($coverItems !== []): ?>
+                <div class="listing-hero">
+                    <?php foreach ($coverItems as $item): ?>
+                        <img
+                            class="media-cover"
+                            src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>"
+                            alt="<?= $e($listing['title']) ?>"
+                            width="640"
+                            height="800"
+                        >
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="listing-hero">
+                    <span class="listing-card-placeholder" aria-hidden="true">
+                        <span class="listing-card-placeholder-brand">ERONYX</span>
+                        <span class="listing-card-placeholder-label">Sin imagen</span>
+                    </span>
+                </div>
             <?php endif; ?>
 
-            <?php if ($creatorProfileUrl !== null): ?>
-                <p><a href="<?= $e($creatorProfileUrl) ?>">Ver perfil de @<?= $e($creatorUsername) ?></a></p>
+            <?php if ($galleryItems !== []): ?>
+                <section class="section">
+                    <header class="section-header">
+                        <h2>Galería</h2>
+                    </header>
+                    <ul class="media-grid">
+                        <?php foreach ($galleryItems as $item): ?>
+                            <li>
+                                <img
+                                    src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>"
+                                    alt="<?= $e($listing['title']) ?>"
+                                    width="240"
+                                    height="300"
+                                    loading="lazy"
+                                >
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </section>
             <?php endif; ?>
 
-            <?php if (!$isOwner): ?>
-                <p><a class="btn btn-primary" href="<?= $e($checkoutUrl) ?>">Comprar / desbloquear</a></p>
-            <?php endif; ?>
-
-            <?php if ($categories !== []): ?>
-                <p><?= $e(implode(', ', array_map(static fn (array $category): string => $category['name'], $categories))) ?></p>
-            <?php endif; ?>
-
-            <?php if ($mediaGroups['gallery'] !== []): ?>
-                <h2>Galería</h2>
-                <?php foreach ($mediaGroups['gallery'] as $item): ?>
-                    <img src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>" alt="" width="180">
-                <?php endforeach; ?>
-            <?php endif; ?>
-
-            <?php if ($mediaGroups['preview'] !== []): ?>
-                <h2>Preview</h2>
-                <?php foreach ($mediaGroups['preview'] as $item): ?>
-                    <img src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>" alt="" width="180">
-                <?php endforeach; ?>
+            <?php if ($previewItems !== []): ?>
+                <section class="section">
+                    <header class="section-header">
+                        <h2>Preview</h2>
+                    </header>
+                    <ul class="media-grid">
+                        <?php foreach ($previewItems as $item): ?>
+                            <li>
+                                <img
+                                    src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>"
+                                    alt="<?= $e('Preview de ' . $listing['title']) ?>"
+                                    width="240"
+                                    height="300"
+                                    loading="lazy"
+                                >
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                </section>
             <?php endif; ?>
 
             <?php if ($privateMediaCount > 0): ?>
-                <h2>Contenido privado</h2>
-                <?php if ($canAccessPrivateMedia): ?>
-                    <?php foreach ($privateMedia as $item): ?>
-                        <?php if ($item['media_type'] === 'video'): ?>
-                            <video src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>" controls controlsList="nodownload" width="360"></video>
-                        <?php else: ?>
-                            <img src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>" alt="" width="180">
-                        <?php endif; ?>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <p>Contenido privado disponible: <?= $e($privateMediaCount) ?> elemento(s).</p>
-                <?php endif; ?>
+                <section class="section">
+                    <?php if ($canAccessPrivateMedia): ?>
+                        <header class="section-header">
+                            <h2>Contenido privado</h2>
+                        </header>
+                        <ul class="media-grid">
+                            <?php foreach ($privateMedia as $item): ?>
+                                <li class="<?= $item['media_type'] === 'video' ? 'media-video' : '' ?>">
+                                    <?php if ($item['media_type'] === 'video'): ?>
+                                        <video src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>" controls preload="metadata" controlsList="nodownload" width="360"></video>
+                                    <?php else: ?>
+                                        <img
+                                            src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>"
+                                            alt="<?= $e($listing['title']) ?>"
+                                            width="240"
+                                            height="300"
+                                            loading="lazy"
+                                        >
+                                    <?php endif; ?>
+                                </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php else: ?>
+                        <div class="private-lock">
+                            <h2>Contenido privado</h2>
+                            <p>Este listing incluye contenido privado.</p>
+                        </div>
+                    <?php endif; ?>
+                </section>
             <?php endif; ?>
         </div>
-        <div class="card-footer">
-            <a class="link-muted" href="<?= $e($indexUrl) ?>">Volver al marketplace</a>
+
+        <div class="listing-detail-info">
+            <div class="listing-meta">
+                <span class="badge"><?= $e(\App\Core\Layout::listingTypeLabel((string) $listing['listing_type'])) ?></span>
+            </div>
+            <h1><?= $e($listing['title']) ?></h1>
+            <p class="listing-price"><?= $e(\App\Core\Layout::formatPrice($listing['price'], $listing['currency'])) ?></p>
+
+            <?php if ($creatorProfileUrl !== null): ?>
+                <p>
+                    <a href="<?= $e($creatorProfileUrl) ?>">Ver perfil de @<?= $e($creatorUsername) ?></a>
+                </p>
+            <?php endif; ?>
+
+            <?php if (($listing['description'] ?? '') !== ''): ?>
+                <p class="listing-description"><?= $e($listing['description']) ?></p>
+            <?php endif; ?>
+
+            <?php if ($categories !== []): ?>
+                <ul class="category-list">
+                    <?php foreach ($categories as $category): ?>
+                        <li class="filter-chip"><?= $e($category['name']) ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+
+            <?php if (!$isOwner): ?>
+                <p class="cta-row">
+                    <a class="btn btn-primary" href="<?= $e($checkoutUrl) ?>">Comprar / Desbloquear</a>
+                </p>
+            <?php endif; ?>
+
+            <p><a class="link-muted" href="<?= $e($indexUrl) ?>">Volver al marketplace</a></p>
         </div>
     </article>
 </div>

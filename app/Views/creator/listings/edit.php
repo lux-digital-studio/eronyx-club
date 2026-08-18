@@ -8,7 +8,10 @@ $checked = static fn (int $id, array $ids): string => in_array($id, $ids, true) 
 ob_start();
 ?>
 <div class="container">
-    <h1>Editar publicación</h1>
+    <header class="page-header">
+        <h1 class="page-title">Editar publicación</h1>
+        <p class="page-subtitle">Actualiza la información, el precio y las categorías.</p>
+    </header>
 
     <?php if ($errors !== []): ?>
         <div class="alert alert-error" role="alert">
@@ -23,59 +26,73 @@ ob_start();
     <form method="post" action="<?= $e($action) ?>">
         <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
 
-        <div class="form-group">
-            <label for="title">Título</label>
-            <input id="title" type="text" name="title" value="<?= $e($old['title'] ?? '') ?>" required maxlength="180">
+        <section class="form-section">
+            <h2>Información</h2>
+            <div class="form-group">
+                <label for="title">Título</label>
+                <input id="title" type="text" name="title" value="<?= $e($old['title'] ?? '') ?>" required maxlength="180">
+            </div>
+            <div class="form-group">
+                <label for="description">Descripción</label>
+                <textarea id="description" name="description" maxlength="5000"><?= $e($old['description'] ?? '') ?></textarea>
+            </div>
+        </section>
+
+        <section class="form-section">
+            <h2>Tipo</h2>
+            <div class="form-group">
+                <label for="listing_type">Tipo</label>
+                <select id="listing_type" name="listing_type" required>
+                    <option value="physical_product"<?= $selected($old['listing_type'] ?? '', 'physical_product') ?>>Producto</option>
+                    <option value="digital_content"<?= $selected($old['listing_type'] ?? '', 'digital_content') ?>>Digital</option>
+                    <option value="service"<?= $selected($old['listing_type'] ?? '', 'service') ?>>Servicio</option>
+                    <option value="bundle"<?= $selected($old['listing_type'] ?? '', 'bundle') ?>>Pack</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="form-section">
+            <h2>Precio</h2>
+            <div class="form-group">
+                <label for="price">Precio</label>
+                <input id="price" type="text" name="price" value="<?= $e($old['price'] ?? '') ?>" required inputmode="decimal">
+            </div>
+            <div class="form-group">
+                <label for="currency">Moneda</label>
+                <input id="currency" type="text" name="currency" value="<?= $e($old['currency'] ?? 'EUR') ?>" required maxlength="3">
+            </div>
+        </section>
+
+        <section class="form-section">
+            <h2>Visibilidad</h2>
+            <div class="form-group">
+                <label for="visibility">Visibilidad</label>
+                <select id="visibility" name="visibility" required>
+                    <option value="public"<?= $selected($old['visibility'] ?? '', 'public') ?>>Público</option>
+                    <option value="private"<?= $selected($old['visibility'] ?? '', 'private') ?>>Privado</option>
+                    <option value="unlisted"<?= $selected($old['visibility'] ?? '', 'unlisted') ?>>No listado</option>
+                </select>
+            </div>
+        </section>
+
+        <section class="form-section">
+            <h2>Categorías</h2>
+            <fieldset class="checkbox-list">
+                <legend>Categorías</legend>
+                <?php foreach ($categories as $category): ?>
+                    <label>
+                        <input type="checkbox" name="categories[]" value="<?= $e($category['id']) ?>"<?= $checked($category['id'], $selectedCategoryIds) ?>>
+                        <?= $e($category['name']) ?>
+                    </label>
+                <?php endforeach; ?>
+            </fieldset>
+        </section>
+
+        <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Guardar cambios</button>
+            <a class="link-muted" href="<?= $e($indexUrl) ?>">Volver</a>
         </div>
-
-        <div class="form-group">
-            <label for="description">Descripción</label>
-            <textarea id="description" name="description" maxlength="5000"><?= $e($old['description'] ?? '') ?></textarea>
-        </div>
-
-        <div class="form-group">
-            <label for="listing_type">Tipo</label>
-            <select id="listing_type" name="listing_type" required>
-                <option value="physical_product"<?= $selected($old['listing_type'] ?? '', 'physical_product') ?>>physical_product</option>
-                <option value="digital_content"<?= $selected($old['listing_type'] ?? '', 'digital_content') ?>>digital_content</option>
-                <option value="service"<?= $selected($old['listing_type'] ?? '', 'service') ?>>service</option>
-                <option value="bundle"<?= $selected($old['listing_type'] ?? '', 'bundle') ?>>bundle</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="price">Precio</label>
-            <input id="price" type="text" name="price" value="<?= $e($old['price'] ?? '') ?>" required inputmode="decimal">
-        </div>
-
-        <div class="form-group">
-            <label for="currency">Moneda</label>
-            <input id="currency" type="text" name="currency" value="<?= $e($old['currency'] ?? 'EUR') ?>" required maxlength="3">
-        </div>
-
-        <div class="form-group">
-            <label for="visibility">Visibilidad</label>
-            <select id="visibility" name="visibility" required>
-                <option value="public"<?= $selected($old['visibility'] ?? '', 'public') ?>>public</option>
-                <option value="private"<?= $selected($old['visibility'] ?? '', 'private') ?>>private</option>
-                <option value="unlisted"<?= $selected($old['visibility'] ?? '', 'unlisted') ?>>unlisted</option>
-            </select>
-        </div>
-
-        <fieldset>
-            <legend>Categorías</legend>
-            <?php foreach ($categories as $category): ?>
-                <label>
-                    <input type="checkbox" name="categories[]" value="<?= $e($category['id']) ?>"<?= $checked($category['id'], $selectedCategoryIds) ?>>
-                    <?= $e($category['name']) ?>
-                </label>
-            <?php endforeach; ?>
-        </fieldset>
-
-        <button class="btn btn-primary" type="submit">Guardar cambios</button>
     </form>
-
-    <p><a class="link-muted" href="<?= $e($indexUrl) ?>">Volver</a></p>
 </div>
 <?php
 \App\Core\Layout::render('Editar publicación - ERONYX', (string) ob_get_clean());

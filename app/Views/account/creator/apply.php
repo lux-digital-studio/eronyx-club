@@ -6,7 +6,10 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
 ob_start();
 ?>
 <div class="container">
-    <h1>Solicitar acceso creator</h1>
+    <header class="page-header">
+        <h1 class="page-title">Solicitar acceso creator</h1>
+        <p class="page-subtitle">Confirma tu edad y envía la solicitud de revisión.</p>
+    </header>
 
     <?php if ($errors !== []): ?>
         <div class="alert alert-error" role="alert">
@@ -16,25 +19,23 @@ ob_start();
         </div>
     <?php endif; ?>
 
-    <form method="post" action="<?= $e($action) ?>">
-        <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+    <section class="form-section">
+        <form method="post" action="<?= $e($action) ?>">
+            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
 
-        <div class="form-group">
-            <label>
+            <label class="checkbox-row">
                 <input type="checkbox" name="adult_confirmation" value="1">
-                Declaro que soy mayor de 18 años.
+                <span>Declaro que soy mayor de 18 años.</span>
             </label>
-        </div>
 
-        <div class="form-group">
-            <label>
+            <label class="checkbox-row">
                 <input type="checkbox" name="terms_confirmation" value="1">
-                Acepto solicitar la revisión para acceso creator.
+                <span>Acepto solicitar la revisión para acceso creator.</span>
             </label>
-        </div>
 
-        <button class="btn btn-primary" type="submit">Enviar solicitud</button>
-    </form>
+            <button class="btn btn-primary" type="submit">Enviar solicitud</button>
+        </form>
+    </section>
 
     <p><a class="link-muted" href="<?= $e($statusUrl) ?>">Ver estado creator</a></p>
 </div>

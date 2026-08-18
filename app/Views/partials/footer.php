@@ -11,9 +11,11 @@ $year = date('Y');
         <p class="footer-brand">ERONYX</p>
         <nav class="footer-nav" aria-label="Pie de página">
             <a href="<?= $e($url('/marketplace')) ?>">Marketplace</a>
-            <span class="footer-muted">Términos</span>
-            <span class="footer-muted">Privacidad</span>
         </nav>
-        <p class="footer-copy">© <?= $e($year) ?> ERONYX</p>
+        <div class="footer-meta">
+            <span>Términos</span>
+            <span>Privacidad</span>
+            <p class="footer-copy">© <?= $e($year) ?> ERONYX</p>
+        </div>
     </div>
 </footer>
