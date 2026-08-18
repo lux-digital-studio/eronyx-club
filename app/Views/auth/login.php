@@ -3,20 +3,15 @@
 declare(strict_types=1);
 
 $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+ob_start();
 ?>
-<!doctype html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login - ERONYX</title>
-</head>
-<body>
-    <main>
+<div class="auth-shell">
+    <div class="auth-card">
         <h1>Iniciar sesion</h1>
+        <p class="auth-lead">Accede a tu cuenta ERONYX.</p>
 
         <?php if ($errors !== []): ?>
-            <div role="alert">
+            <div class="alert alert-error" role="alert">
                 <ul>
                     <?php foreach ($errors as $error): ?>
                         <li><?= $e($error) ?></li>
@@ -28,20 +23,21 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
         <form method="post" action="<?= $e($action) ?>">
             <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
 
-            <label>
-                Email
-                <input type="email" name="email" value="<?= $e($old['email'] ?? '') ?>" required maxlength="255" autocomplete="email">
-            </label>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input id="email" type="email" name="email" value="<?= $e($old['email'] ?? '') ?>" required maxlength="255" autocomplete="email">
+            </div>
 
-            <label>
-                Contrasena
-                <input type="password" name="password" required autocomplete="current-password">
-            </label>
+            <div class="form-group">
+                <label for="password">Contrasena</label>
+                <input id="password" type="password" name="password" required autocomplete="current-password">
+            </div>
 
-            <button type="submit">Entrar</button>
+            <button class="btn btn-primary" type="submit">Entrar</button>
         </form>
 
         <p><a href="<?= $e($registerUrl) ?>">Crear cuenta</a></p>
-    </main>
-</body>
-</html>
+    </div>
+</div>
+<?php
+\App\Core\Layout::render('Login - ERONYX', (string) ob_get_clean(), 'page-auth');

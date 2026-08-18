@@ -3,23 +3,28 @@
 declare(strict_types=1);
 
 $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+$badgeClass = static fn (string $status): string => match ($status) {
+    'draft' => 'badge badge-draft',
+    'pending_review' => 'badge badge-pending',
+    'published' => 'badge badge-published',
+    'rejected' => 'badge badge-rejected',
+    default => 'badge',
+};
+ob_start();
 ?>
-<!doctype html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Mis publicaciones - ERONYX</title>
-</head>
-<body>
-    <main>
+<div class="container">
+    <div class="page-header">
         <h1>Mis publicaciones</h1>
-        <p><a href="<?= $e($createUrl) ?>">Crear publicación</a></p>
+        <p><a class="btn btn-primary" href="<?= $e($createUrl) ?>">Crear publicación</a></p>
+    </div>
 
-        <?php if ($listings === []): ?>
+    <?php if ($listings === []): ?>
+        <div class="empty-state">
             <p>No tienes publicaciones todavía.</p>
-        <?php else: ?>
-            <table>
+        </div>
+    <?php else: ?>
+        <div class="table-wrapper">
+            <table class="table">
                 <thead>
                     <tr>
                         <th>Título</th>
@@ -34,7 +39,7 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
                     <?php foreach ($listings as $listing): ?>
                         <tr>
                             <td><?= $e($listing['title']) ?></td>
-                            <td><?= $e($listing['status']) ?></td>
+                            <td><span class="<?= $e($badgeClass($listing['status'])) ?>"><?= $e($listing['status']) ?></span></td>
                             <td><?= $e($listing['listing_type']) ?></td>
                             <td><?= $e($listing['price']) ?> <?= $e($listing['currency']) ?></td>
                             <td><?= $e($listing['created_at']) ?></td>
@@ -48,7 +53,8 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
                     <?php endforeach; ?>
                 </tbody>
             </table>
-        <?php endif; ?>
-    </main>
-</body>
-</html>
+        </div>
+    <?php endif; ?>
+</div>
+<?php
+\App\Core\Layout::render('Mis publicaciones - ERONYX', (string) ob_get_clean());

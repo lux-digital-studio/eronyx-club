@@ -1,21 +1,19 @@
 <?php
 
 declare(strict_types=1);
+
+$e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+ob_start();
 ?>
-<!doctype html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Creator - ERONYX</title>
-</head>
-<body>
-    <main>
+<div class="container">
+    <div class="page-header">
         <h1>ERONYX - Creator</h1>
-        <p>Zona privada de creador.</p>
-        <?php if ($publicProfileUrl !== null): ?>
-            <p><a href="<?= htmlspecialchars((string) $publicProfileUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">Ver mi perfil público</a></p>
-        <?php endif; ?>
-    </main>
-</body>
-</html>
+        <p class="muted">Zona privada de creador.</p>
+    </div>
+    <?php if ($publicProfileUrl !== null): ?>
+        <p><a href="<?= $e($publicProfileUrl) ?>">Ver mi perfil público</a></p>
+    <?php endif; ?>
+    <p><a class="btn btn-primary" href="<?= $e(\App\Core\Layout::url('/creator/listings')) ?>">Mis publicaciones</a></p>
+</div>
+<?php
+\App\Core\Layout::render('Creator - ERONYX', (string) ob_get_clean());

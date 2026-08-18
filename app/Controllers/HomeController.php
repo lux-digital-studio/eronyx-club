@@ -8,7 +8,10 @@ final class HomeController
 {
     public function index(): string
     {
-        return 'ERONYX - Home';
+        ob_start();
+        require dirname(__DIR__) . '/Views/home/index.php';
+
+        return (string) ob_get_clean();
     }
 
     public function marketplace(): string

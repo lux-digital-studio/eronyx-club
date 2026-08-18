@@ -3,27 +3,20 @@
 declare(strict_types=1);
 
 $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+ob_start();
 ?>
-<!doctype html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Estado creator - ERONYX</title>
-</head>
-<body>
-    <main>
-        <h1>Estado creator</h1>
+<div class="container">
+    <h1>Estado creator</h1>
 
-        <p>Estado: <?= $e($status) ?></p>
+    <p>Estado: <?= $e($status) ?></p>
 
-        <?php if ($status === 'none' || $status === 'rejected'): ?>
-            <p><a href="<?= $e($applyUrl) ?>">Solicitar ser creator</a></p>
-        <?php elseif ($status === 'active'): ?>
-            <p><a href="<?= $e($creatorUrl) ?>">Ir al panel creator</a></p>
-        <?php endif; ?>
+    <?php if ($status === 'none' || $status === 'rejected'): ?>
+        <p><a class="btn btn-primary" href="<?= $e($applyUrl) ?>">Solicitar ser creator</a></p>
+    <?php elseif ($status === 'active'): ?>
+        <p><a class="btn btn-primary" href="<?= $e($creatorUrl) ?>">Ir al panel creator</a></p>
+    <?php endif; ?>
 
-        <p><a href="<?= $e($accountUrl) ?>">Volver a cuenta</a></p>
-    </main>
-</body>
-</html>
+    <p><a class="link-muted" href="<?= $e($accountUrl) ?>">Volver a cuenta</a></p>
+</div>
+<?php
+\App\Core\Layout::render('Estado creator - ERONYX', (string) ob_get_clean());

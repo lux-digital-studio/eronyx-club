@@ -3,51 +3,47 @@
 declare(strict_types=1);
 
 $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+ob_start();
 ?>
-<!doctype html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Imágenes - ERONYX</title>
-</head>
-<body>
-    <main>
-        <h1>Imágenes de <?= $e($listing['title']) ?></h1>
+<div class="container">
+    <h1>Imágenes de <?= $e($listing['title']) ?></h1>
 
-        <?php if ($error !== null): ?>
-            <div role="alert"><?= $e($error) ?></div>
-        <?php endif; ?>
+    <?php if ($error !== null): ?>
+        <div class="alert alert-error" role="alert"><?= $e($error) ?></div>
+    <?php endif; ?>
 
-        <?php if ($canModify): ?>
-            <form method="post" action="<?= $e($action) ?>" enctype="multipart/form-data">
-                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+    <?php if ($canModify): ?>
+        <form method="post" action="<?= $e($action) ?>" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
 
-                <label>
-                    Archivo
-                    <input type="file" name="image" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" required>
-                </label>
+            <div class="form-group">
+                <label for="image">Archivo</label>
+                <input id="image" type="file" name="image" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" required>
+            </div>
 
-                <label>
-                    Uso
-                    <select name="usage_type" required>
-                        <option value="cover">cover</option>
-                        <option value="gallery">gallery</option>
-                        <option value="preview">preview</option>
-                        <option value="private_content">private_content</option>
-                    </select>
-                </label>
+            <div class="form-group">
+                <label for="usage_type">Uso</label>
+                <select id="usage_type" name="usage_type" required>
+                    <option value="cover">cover</option>
+                    <option value="gallery">gallery</option>
+                    <option value="preview">preview</option>
+                    <option value="private_content">private_content</option>
+                </select>
+            </div>
 
-                <button type="submit">Subir archivo</button>
-            </form>
-        <?php else: ?>
-            <p>Las imágenes no se pueden modificar en el estado actual.</p>
-        <?php endif; ?>
+            <button class="btn btn-primary" type="submit">Subir archivo</button>
+        </form>
+    <?php else: ?>
+        <p class="muted">Las imágenes no se pueden modificar en el estado actual.</p>
+    <?php endif; ?>
 
-        <?php if ($mediaItems === []): ?>
+    <?php if ($mediaItems === []): ?>
+        <div class="empty-state">
             <p>No hay imágenes asociadas.</p>
-        <?php else: ?>
-            <table>
+        </div>
+    <?php else: ?>
+        <div class="table-wrapper">
+            <table class="table">
                 <thead>
                     <tr>
                         <th>Media</th>
@@ -83,12 +79,12 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
                                     <?php if ($item['usage_type'] !== 'cover' && $item['media_type'] === 'image' && $item['visibility'] === 'public'): ?>
                                         <form method="post" action="<?= $e($action . '/' . $item['media_file_id'] . '/cover') ?>">
                                             <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-                                            <button type="submit">Portada</button>
+                                            <button class="btn btn-secondary" type="submit">Portada</button>
                                         </form>
                                     <?php endif; ?>
                                     <form method="post" action="<?= $e($action . '/' . $item['media_file_id'] . '/delete') ?>">
                                         <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-                                        <button type="submit">Eliminar</button>
+                                        <button class="btn btn-danger" type="submit">Eliminar</button>
                                     </form>
                                 <?php endif; ?>
                             </td>
@@ -96,9 +92,10 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
                     <?php endforeach; ?>
                 </tbody>
             </table>
-        <?php endif; ?>
+        </div>
+    <?php endif; ?>
 
-        <p><a href="<?= $e($listingUrl) ?>">Volver al listing</a></p>
-    </main>
-</body>
-</html>
+    <p><a class="link-muted" href="<?= $e($listingUrl) ?>">Volver al listing</a></p>
+</div>
+<?php
+\App\Core\Layout::render('Imágenes - ERONYX', (string) ob_get_clean());

@@ -1,18 +1,16 @@
 <?php
 
 declare(strict_types=1);
+
+ob_start();
 ?>
-<!doctype html>
-<html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Moderacion - ERONYX</title>
-</head>
-<body>
-    <main>
-        <h1>ERONYX - Moderacion</h1>
-        <p>Zona privada de moderacion.</p>
-    </main>
-</body>
-</html>
+<div class="container">
+    <h1>ERONYX - Moderacion</h1>
+    <p class="muted">Zona privada de moderacion.</p>
+    <div class="account-links">
+        <a href="<?= htmlspecialchars(\App\Core\Layout::url('/moderator/listings'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">Publicaciones pendientes</a>
+        <a href="<?= htmlspecialchars(\App\Core\Layout::url('/moderator/creator-applications'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">Solicitudes creator</a>
+    </div>
+</div>
+<?php
+\App\Core\Layout::render('Moderacion - ERONYX', (string) ob_get_clean());
