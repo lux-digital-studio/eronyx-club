@@ -11,6 +11,7 @@ use App\Controllers\CreatorApplicationController;
 use App\Controllers\CreatorController;
 use App\Controllers\CreatorListingController;
 use App\Controllers\CreatorMediaController;
+use App\Controllers\FavoriteController;
 use App\Controllers\MarketplaceController;
 use App\Controllers\MediaController;
 use App\Controllers\ModeratorCreatorApplicationController;
@@ -31,6 +32,9 @@ return static function (Router $router): void {
     $router->get('/marketplace/{slug}', [MarketplaceController::class, 'show']);
     $router->get('/media/{id}', [MediaController::class, 'show']);
     $router->get('/account', [AccountController::class, 'index'], [AuthMiddleware::class]);
+    $router->get('/account/favorites', [FavoriteController::class, 'index'], [AuthMiddleware::class]);
+    $router->post('/favorites/{listingId}', [FavoriteController::class, 'store'], [AuthMiddleware::class]);
+    $router->post('/favorites/{listingId}/delete', [FavoriteController::class, 'destroy'], [AuthMiddleware::class]);
     $router->get('/account/orders', [OrderController::class, 'index'], [AuthMiddleware::class]);
     $router->get('/account/orders/{id}', [OrderController::class, 'show'], [AuthMiddleware::class]);
     $router->post('/account/orders/{id}/test-pay', [OrderController::class, 'testPay'], [AuthMiddleware::class]);

@@ -496,7 +496,7 @@ final class ListingRepository
 
     private function publishedPublicSelectSql(): string
     {
-        return "SELECT l.id, l.title, l.slug, l.price, l.currency, l.listing_type, l.published_at,
+        return "SELECT l.id, l.owner_user_id, l.title, l.slug, l.price, l.currency, l.listing_type, l.published_at,
                     creator.display_name AS creator_display_name,
                     creator.username AS creator_username,
                     creator.avatar_media_id AS creator_avatar_media_id,
@@ -554,6 +554,7 @@ final class ListingRepository
     private function normalizeMarketplaceCard(array $listing): array
     {
         $listing['id'] = (int) $listing['id'];
+        $listing['owner_user_id'] = (int) $listing['owner_user_id'];
         $listing['price'] = number_format((float) $listing['price'], 2, '.', '');
         $listing['cover_media_id'] = $listing['cover_media_id'] !== null ? (int) $listing['cover_media_id'] : null;
         $listing['creator_avatar_media_id'] = $listing['creator_avatar_media_id'] !== null

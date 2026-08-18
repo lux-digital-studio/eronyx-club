@@ -1053,12 +1053,39 @@ legend {
     border: 1px solid var(--color-border);
 }
 
+.listing-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-top: auto;
+    flex-wrap: wrap;
+}
+
 .listing-card-price {
-    margin: auto 0 0;
+    margin: 0;
     font-size: 1.05rem;
     font-weight: 700;
     letter-spacing: -0.02em;
     color: var(--color-accent);
+}
+
+.listing-card-favorite {
+    margin: 0;
+    flex: 0 1 auto;
+    max-width: 100%;
+}
+
+.listing-favorite {
+    min-height: 2.25rem;
+    padding: 0.35rem 0.75rem;
+    font-size: var(--text-sm);
+    white-space: nowrap;
+}
+
+.listing-favorite.is-active {
+    color: var(--color-accent);
+    border-color: rgb(240 179 90 / 0.45);
 }
 
 .empty-state-actions {

@@ -48,6 +48,7 @@ ob_start();
                     $listingUrl = $marketplaceUrl . '/' . $listing['slug'];
                     $headingTag = 'h3';
                     $showCreator = false;
+                    $showFavorite = false;
                     require dirname(__DIR__, 2) . '/partials/listing-card.php';
                     ?>
                 <?php endforeach; ?>

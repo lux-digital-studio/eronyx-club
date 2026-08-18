@@ -133,9 +133,23 @@ ob_start();
             <?php endif; ?>
 
             <?php if (!$isOwner): ?>
-                <p class="cta-row">
+                <div class="cta-row">
                     <a class="btn btn-primary" href="<?= $e($checkoutUrl) ?>">Comprar / Desbloquear</a>
-                </p>
+                    <?php if (!empty($canFavorite) && is_string($csrf ?? null)): ?>
+                        <form method="post" action="<?= $e($isFavorite ? $favoriteDestroyUrl : $favoriteStoreUrl) ?>">
+                            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                            <input type="hidden" name="source" value="detail">
+                            <button
+                                class="btn btn-ghost listing-favorite<?= $isFavorite ? ' is-active' : '' ?>"
+                                type="submit"
+                                aria-label="<?= $e($isFavorite ? 'Quitar de favoritos' : 'Guardar en favoritos') ?>"
+                            >
+                                <span aria-hidden="true"><?= $isFavorite ? '♥' : '♡' ?></span>
+                                <?= $isFavorite ? 'Guardado' : 'Guardar' ?>
+                            </button>
+                        </form>
+                    <?php endif; ?>
+                </div>
             <?php endif; ?>
 
             <p><a class="link-muted" href="<?= $e($indexUrl) ?>">Volver al marketplace</a></p>

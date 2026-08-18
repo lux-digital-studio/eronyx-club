@@ -147,6 +147,13 @@ ob_start();
                 $listingUrl = $indexUrl . '/' . $listing['slug'];
                 $headingTag = 'h2';
                 $showCreator = true;
+                $isOwner = $currentUserId !== null && (int) ($listing['owner_user_id'] ?? 0) === $currentUserId;
+                $showFavorite = $currentUserId !== null && !$isOwner && is_string($csrf ?? null);
+                $isFavorite = $showFavorite && isset($favoritedListingIds[(int) $listing['id']]);
+                $favoriteSource = 'marketplace';
+                $favoriteActionUrl = $showFavorite
+                    ? $favoriteStoreBaseUrl . '/' . $listing['id'] . ($isFavorite ? '/delete' : '')
+                    : null;
                 require dirname(__DIR__) . '/partials/listing-card.php';
                 ?>
             <?php endforeach; ?>
