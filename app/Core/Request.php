@@ -32,6 +32,11 @@ final class Request
         return $this->parsedInput()[$key] ?? $default;
     }
 
+    public function query(string $key, mixed $default = null): mixed
+    {
+        return $_GET[$key] ?? $default;
+    }
+
     /** @return array<string, mixed>|null */
     public function file(string $key): ?array
     {

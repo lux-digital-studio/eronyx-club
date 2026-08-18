@@ -6,32 +6,41 @@ namespace App\Controllers;
 
 use App\Core\Auth;
 use App\Core\Database;
+use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
+use App\Repositories\CategoryRepository;
 use App\Repositories\ListingRepository;
 use App\Repositories\MediaRepository;
 use App\Repositories\PrivateContentAccessRepository;
 use App\Repositories\ProfileRepository;
+use App\Services\MarketplaceSearchService;
 use App\Services\PrivateContentAccessService;
 
 final class MarketplaceController
 {
+    private Request $request;
     private Response $response;
     private Auth $auth;
     private ListingRepository $listings;
+    private CategoryRepository $categories;
     private MediaRepository $media;
     private ProfileRepository $profiles;
+    private MarketplaceSearchService $search;
     private PrivateContentAccessService $privateAccess;
 
     public function __construct()
     {
+        $this->request = new Request();
         $this->response = new Response();
         $session = new Session();
         $this->auth = new Auth($session);
         $pdo = (new Database())->connection();
         $this->listings = new ListingRepository($pdo);
+        $this->categories = new CategoryRepository($pdo);
         $this->media = new MediaRepository($pdo);
         $this->profiles = new ProfileRepository($pdo);
+        $this->search = new MarketplaceSearchService($this->listings);
         $this->privateAccess = new PrivateContentAccessService(
             new PrivateContentAccessRepository($pdo),
             $this->listings,
@@ -42,18 +51,19 @@ final class MarketplaceController
 
     public function index(): string
     {
-        $listings = $this->listings->findPublishedPublic();
-        $categoryMap = $this->listings->findCategoriesForListings(
-            array_map(static fn (array $listing): int => (int) $listing['id'], $listings)
-        );
+        $result = $this->search->search($this->request);
 
         return $this->view('marketplace/index.php', [
-            'listings' => $listings,
-            'categoryMap' => $categoryMap,
-            'coverMap' => $this->media->findCoverIdsForListings(
-                array_map(static fn (array $listing): int => (int) $listing['id'], $listings)
-            ),
-            'baseUrl' => $this->url('/marketplace'),
+            'listings' => $result['items'],
+            'filters' => $result['filters'],
+            'total' => $result['total'],
+            'perPage' => $result['perPage'],
+            'currentPage' => $result['currentPage'],
+            'lastPage' => $result['lastPage'],
+            'query' => $result['query'],
+            'categories' => $this->categories->findActive(),
+            'indexUrl' => $this->url('/marketplace'),
+            'creatorBaseUrl' => $this->url('/creator'),
             'mediaBaseUrl' => $this->url('/media'),
         ]);
     }

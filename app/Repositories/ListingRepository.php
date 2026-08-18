@@ -360,6 +360,214 @@ final class ListingRepository
         return array_map('intval', $statement->fetchAll(PDO::FETCH_COLUMN));
     }
 
+    /**
+     * Search published public listings. Filters use EXISTS/subqueries so
+     * listing_categories, roles and media joins cannot duplicate rows.
+     *
+     * @param array{
+     *   q?: string|null,
+     *   category?: string|null,
+     *   type?: string|null,
+     *   min_price?: string|null,
+     *   max_price?: string|null,
+     *   creator?: string|null,
+     *   sort?: string,
+     *   page?: int,
+     *   per_page?: int
+     * } $filters
+     * @return list<array<string, mixed>>
+     */
+    public function searchPublishedPublic(array $filters): array
+    {
+        $page = max(1, (int) ($filters['page'] ?? 1));
+        $perPage = max(1, (int) ($filters['per_page'] ?? 12));
+        $offset = ($page - 1) * $perPage;
+        $built = $this->publishedPublicFilterSql($filters);
+
+        $sql = $this->publishedPublicSelectSql()
+            . $built['sql']
+            . $this->publishedPublicOrderSql((string) ($filters['sort'] ?? 'newest'))
+            . ' LIMIT :limit OFFSET :offset';
+
+        $statement = $this->pdo->prepare($sql);
+
+        foreach ($built['params'] as $name => $value) {
+            $statement->bindValue(':' . ltrim((string) $name, ':'), $value);
+        }
+
+        $statement->bindValue(':limit', $perPage, PDO::PARAM_INT);
+        $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $statement->execute();
+
+        return array_map(fn (array $listing): array => $this->normalizeMarketplaceCard($listing), $statement->fetchAll());
+    }
+
+    /**
+     * @param array<string, mixed> $filters
+     */
+    public function countPublishedPublic(array $filters): int
+    {
+        $built = $this->publishedPublicFilterSql($filters);
+        $statement = $this->pdo->prepare(
+            'SELECT COUNT(*) FROM listings l' . $built['sql']
+        );
+        $statement->execute($built['params']);
+
+        return (int) $statement->fetchColumn();
+    }
+
+    /**
+     * Shared WHERE for search + count. Named placeholders are unique
+     * (PDO native prepares cannot reuse the same name twice).
+     *
+     * @param array<string, mixed> $filters
+     * @return array{sql: string, params: array<string, mixed>}
+     */
+    private function publishedPublicFilterSql(array $filters): array
+    {
+        $sql = " WHERE l.status = 'published'
+                AND l.visibility = 'public'
+                AND l.published_at IS NOT NULL
+                AND l.deleted_at IS NULL";
+        $params = [];
+
+        $q = isset($filters['q']) && is_string($filters['q']) ? $filters['q'] : null;
+        if ($q !== null && $q !== '') {
+            $like = $this->likeContains($q);
+            $sql .= ' AND (l.title LIKE :q_title ESCAPE \'\\\\\' OR l.description LIKE :q_description ESCAPE \'\\\\\')';
+            $params['q_title'] = $like;
+            $params['q_description'] = $like;
+        }
+
+        $category = isset($filters['category']) && is_string($filters['category']) ? $filters['category'] : null;
+        if ($category !== null && $category !== '') {
+            $sql .= " AND EXISTS (
+                SELECT 1
+                FROM listing_categories lc
+                INNER JOIN categories c ON c.id = lc.category_id
+                WHERE lc.listing_id = l.id
+                    AND c.slug = :category_slug
+                    AND c.status = 'active'
+             )";
+            $params['category_slug'] = $category;
+        }
+
+        $type = isset($filters['type']) && is_string($filters['type']) ? $filters['type'] : null;
+        if ($type !== null && $type !== '') {
+            $sql .= ' AND l.listing_type = :listing_type';
+            $params['listing_type'] = $type;
+        }
+
+        $minPrice = isset($filters['min_price']) && is_string($filters['min_price']) ? $filters['min_price'] : null;
+        if ($minPrice !== null) {
+            $sql .= ' AND l.price >= :min_price';
+            $params['min_price'] = $minPrice;
+        }
+
+        $maxPrice = isset($filters['max_price']) && is_string($filters['max_price']) ? $filters['max_price'] : null;
+        if ($maxPrice !== null) {
+            $sql .= ' AND l.price <= :max_price';
+            $params['max_price'] = $maxPrice;
+        }
+
+        $creator = isset($filters['creator']) && is_string($filters['creator']) ? $filters['creator'] : null;
+        if ($creator !== null && $creator !== '') {
+            $sql .= " AND EXISTS (
+                SELECT 1
+                FROM profiles p_filter
+                INNER JOIN users u_filter ON u_filter.id = p_filter.user_id
+                INNER JOIN creator_profiles cp_filter ON cp_filter.user_id = u_filter.id
+                INNER JOIN user_roles ur_filter ON ur_filter.user_id = u_filter.id
+                INNER JOIN roles r_filter ON r_filter.id = ur_filter.role_id
+                WHERE p_filter.user_id = l.owner_user_id
+                    AND p_filter.username = :creator_username
+                    AND p_filter.deleted_at IS NULL
+                    AND u_filter.status = 'active'
+                    AND u_filter.deleted_at IS NULL
+                    AND cp_filter.status = 'active'
+                    AND cp_filter.deleted_at IS NULL
+                    AND r_filter.name = 'creator'
+             )";
+            $params['creator_username'] = $creator;
+        }
+
+        return ['sql' => $sql, 'params' => $params];
+    }
+
+    private function publishedPublicSelectSql(): string
+    {
+        return "SELECT l.id, l.title, l.slug, l.price, l.currency, l.listing_type, l.published_at,
+                    creator.display_name AS creator_display_name,
+                    creator.username AS creator_username,
+                    creator.avatar_media_id AS creator_avatar_media_id,
+                    cover.cover_media_id
+             FROM listings l
+             LEFT JOIN (
+                SELECT p.user_id, p.display_name, p.username, p.avatar_media_id
+                FROM profiles p
+                INNER JOIN users u ON u.id = p.user_id
+                INNER JOIN creator_profiles cp ON cp.user_id = p.user_id
+                WHERE p.deleted_at IS NULL
+                    AND u.status = 'active'
+                    AND u.deleted_at IS NULL
+                    AND cp.status = 'active'
+                    AND cp.deleted_at IS NULL
+                    AND EXISTS (
+                        SELECT 1
+                        FROM user_roles ur
+                        INNER JOIN roles r ON r.id = ur.role_id
+                        WHERE ur.user_id = p.user_id
+                            AND r.name = 'creator'
+                    )
+             ) creator ON creator.user_id = l.owner_user_id
+             LEFT JOIN (
+                SELECT lm.listing_id, MIN(lm.media_file_id) AS cover_media_id
+                FROM listing_media lm
+                INNER JOIN media_files mf ON mf.id = lm.media_file_id
+                WHERE lm.usage_type = 'cover'
+                    AND mf.media_type = 'image'
+                    AND mf.visibility = 'public'
+                    AND mf.status = 'active'
+                    AND mf.deleted_at IS NULL
+                GROUP BY lm.listing_id
+             ) cover ON cover.listing_id = l.id";
+    }
+
+    private function publishedPublicOrderSql(string $sort): string
+    {
+        return match ($sort) {
+            'oldest' => ' ORDER BY l.published_at ASC, l.id ASC',
+            'price_asc' => ' ORDER BY l.price ASC, l.id ASC',
+            'price_desc' => ' ORDER BY l.price DESC, l.id DESC',
+            default => ' ORDER BY l.published_at DESC, l.id DESC',
+        };
+    }
+
+    private function likeContains(string $value): string
+    {
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
+
+        return '%' . $escaped . '%';
+    }
+
+    /** @param array<string, mixed> $listing @return array<string, mixed> */
+    private function normalizeMarketplaceCard(array $listing): array
+    {
+        $listing['id'] = (int) $listing['id'];
+        $listing['price'] = number_format((float) $listing['price'], 2, '.', '');
+        $listing['cover_media_id'] = $listing['cover_media_id'] !== null ? (int) $listing['cover_media_id'] : null;
+        $listing['creator_avatar_media_id'] = $listing['creator_avatar_media_id'] !== null
+            ? (int) $listing['creator_avatar_media_id']
+            : null;
+
+        if ($listing['creator_username'] === null) {
+            $listing['creator_display_name'] = null;
+            $listing['creator_avatar_media_id'] = null;
+        }
+
+        return $listing;
+    }
+
     /** @param array<string, mixed> $listing @return array<string, mixed> */
     private function normalizeListing(array $listing): array
     {
