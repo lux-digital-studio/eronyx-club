@@ -19,6 +19,12 @@ ob_start();
             <h2 class="action-card-title">Solicitudes creator</h2>
             <p class="action-card-copy">Aprobación o rechazo de acceso creator.</p>
         </a>
+        <a class="action-card" href="<?= $e(\App\Core\Layout::url('/moderator/reports')) ?>">
+            <h2 class="action-card-title">
+                Reportes<?php if (($openReportCount ?? 0) > 0): ?> (<?= $e((string) $openReportCount) ?>)<?php endif; ?>
+            </h2>
+            <p class="action-card-copy">Denuncias de listings, usuarios y mensajes.</p>
+        </a>
     </div>
 </div>
 <?php

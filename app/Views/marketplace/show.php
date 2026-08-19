@@ -157,6 +157,9 @@ ob_start();
                             </button>
                         </form>
                     <?php endif; ?>
+                    <?php if (!empty($reportListingUrl)): ?>
+                        <a class="btn btn-ghost" href="<?= $e($reportListingUrl) ?>">Reportar publicación</a>
+                    <?php endif; ?>
                 </div>
             <?php endif; ?>
 

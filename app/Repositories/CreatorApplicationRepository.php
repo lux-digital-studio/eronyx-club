@@ -264,6 +264,72 @@ final class CreatorApplicationRepository
         return is_array($user) ? $this->normalize($user) : null;
     }
 
+    public function suspendActive(int $userId): bool
+    {
+        $statement = $this->pdo->prepare(
+            "UPDATE creator_profiles
+             SET status = 'suspended'
+             WHERE user_id = :user_id
+                AND status = 'active'
+                AND deleted_at IS NULL"
+        );
+        $statement->execute(['user_id' => $userId]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    public function restoreSuspended(int $userId): bool
+    {
+        $statement = $this->pdo->prepare(
+            "UPDATE creator_profiles
+             SET status = 'active'
+             WHERE user_id = :user_id
+                AND status = 'suspended'
+                AND deleted_at IS NULL"
+        );
+        $statement->execute(['user_id' => $userId]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    /**
+     * @param list<int> $userIds
+     * @return array<int, string>
+     */
+    public function findStatusByUserIds(array $userIds): array
+    {
+        $userIds = array_values(array_unique(array_filter($userIds, static fn (int $id): bool => $id > 0)));
+
+        if ($userIds === []) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = [];
+
+        foreach ($userIds as $index => $userId) {
+            $name = 'user_id_' . $index;
+            $placeholders[] = ':' . $name;
+            $params[$name] = $userId;
+        }
+
+        $statement = $this->pdo->prepare(
+            'SELECT user_id, status
+             FROM creator_profiles
+             WHERE user_id IN (' . implode(', ', $placeholders) . ')
+                AND deleted_at IS NULL'
+        );
+        $statement->execute($params);
+
+        $statuses = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $statuses[(int) $row['user_id']] = (string) $row['status'];
+        }
+
+        return $statuses;
+    }
+
     private function creatorRoleId(): ?int
     {
         $statement = $this->pdo->prepare("SELECT id FROM roles WHERE name = 'creator' LIMIT 2");

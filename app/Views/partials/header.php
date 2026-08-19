@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** @var array{authenticated: bool, csrf: string|null, path: string, showCreator: bool, showModerator: bool, showAdmin: bool, unreadCount: int} $nav */
+/** @var array{authenticated: bool, csrf: string|null, path: string, showCreator: bool, showModerator: bool, showAdmin: bool, unreadCount: int, openReportCount: int} $nav */
 
 $e = static fn (mixed $value): string => \App\Core\Layout::escape($value);
 $url = static fn (string $path): string => \App\Core\Layout::url($path);
@@ -52,6 +52,9 @@ $active = static function (string $target) use ($path): string {
                     <?php endif; ?>
                     <?php if ($nav['showModerator']): ?>
                         <a class="nav-link" href="<?= $e($url('/moderator')) ?>"<?= $active('/moderator') ?>>Moderación</a>
+                        <a class="nav-link" href="<?= $e($url('/moderator/reports')) ?>">
+                            Reportes<?php if (($nav['openReportCount'] ?? 0) > 0): ?> (<?= $e((string) $nav['openReportCount']) ?>)<?php endif; ?>
+                        </a>
                     <?php endif; ?>
                     <?php if ($nav['showAdmin']): ?>
                         <a class="nav-link" href="<?= $e($url('/admin')) ?>"<?= $active('/admin') ?>>Admin</a>

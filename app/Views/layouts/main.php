@@ -5,7 +5,7 @@ declare(strict_types=1);
 /** @var string $pageTitle */
 /** @var string $content */
 /** @var string $bodyClass */
-/** @var array{authenticated: bool, csrf: string|null, path: string, showCreator: bool, showModerator: bool, showAdmin: bool, unreadCount: int} $nav */
+/** @var array{authenticated: bool, csrf: string|null, path: string, showCreator: bool, showModerator: bool, showAdmin: bool, unreadCount: int, openReportCount: int} $nav */
 
 $e = static fn (mixed $value): string => \App\Core\Layout::escape($value);
 $bodyClass = trim('site-body ' . ($bodyClass ?? ''));

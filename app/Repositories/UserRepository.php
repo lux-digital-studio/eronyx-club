@@ -104,6 +104,71 @@ final class UserRepository
         ]);
     }
 
+    /** @return array{id: int, status: string, deleted_at: string|null}|null */
+    public function findExistingById(int $userId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT id, status, deleted_at
+             FROM users
+             WHERE id = :id
+             LIMIT 1'
+        );
+        $statement->execute(['id' => $userId]);
+        $user = $statement->fetch();
+
+        if (!is_array($user)) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $user['id'],
+            'status' => (string) $user['status'],
+            'deleted_at' => is_string($user['deleted_at']) ? $user['deleted_at'] : null,
+        ];
+    }
+
+    /**
+     * @param list<int> $userIds
+     * @return array<int, array{id: int, status: string, deleted_at: string|null}>
+     */
+    public function findSafeSummariesByIds(array $userIds): array
+    {
+        $userIds = array_values(array_unique(array_filter($userIds, static fn (int $id): bool => $id > 0)));
+
+        if ($userIds === []) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = [];
+
+        foreach ($userIds as $index => $userId) {
+            $name = 'user_id_' . $index;
+            $placeholders[] = ':' . $name;
+            $params[$name] = $userId;
+        }
+
+        $statement = $this->pdo->prepare(
+            'SELECT id, status, deleted_at
+             FROM users
+             WHERE id IN (' . implode(', ', $placeholders) . ')'
+        );
+        $statement->execute($params);
+
+        $users = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $id = (int) $row['id'];
+            $users[$id] = [
+                'id' => $id,
+                'status' => (string) $row['status'],
+                'deleted_at' => is_string($row['deleted_at']) ? $row['deleted_at'] : null,
+            ];
+        }
+
+        return $users;
+    }
+
     /** @return array{id: int, status: string, deleted_at: string|null, roles: list<string>}|null */
     public function findAuthorizationContext(int $userId): ?array
     {

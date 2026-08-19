@@ -6,6 +6,7 @@ namespace App\Core;
 
 use App\Repositories\ConversationRepository;
 use App\Repositories\CreatorApplicationRepository;
+use App\Repositories\ReportRepository;
 use App\Repositories\UserRepository;
 
 final class Nav
@@ -20,7 +21,8 @@ final class Nav
      *   showCreator: bool,
      *   showModerator: bool,
      *   showAdmin: bool,
-     *   unreadCount: int
+     *   unreadCount: int,
+     *   openReportCount: int
      * }
      */
     public static function context(): array
@@ -33,12 +35,17 @@ final class Nav
         $showAdmin = false;
         $csrf = null;
         $unreadCount = 0;
+        $openReportCount = 0;
 
         if ($authenticated) {
             $pdo = (new Database())->connection();
             $authorization = new Authorization($auth, new UserRepository($pdo));
             $showModerator = $authorization->hasRole('moderator');
             $showAdmin = $authorization->hasRole('admin');
+
+            if ($showModerator) {
+                $openReportCount = (new ReportRepository($pdo))->countOpenReports();
+            }
 
             if ($authorization->hasRole('creator')) {
                 $userId = $auth->id();
@@ -63,6 +70,7 @@ final class Nav
             'showModerator' => $showModerator,
             'showAdmin' => $showAdmin,
             'unreadCount' => $unreadCount,
+            'openReportCount' => $openReportCount,
         ];
     }
 }

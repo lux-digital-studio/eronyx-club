@@ -18,9 +18,11 @@ use App\Controllers\MessageController;
 use App\Controllers\ModeratorCreatorApplicationController;
 use App\Controllers\ModeratorController;
 use App\Controllers\ModeratorListingController;
+use App\Controllers\ModeratorReportController;
 use App\Controllers\OrderController;
 use App\Controllers\ProfileController;
 use App\Controllers\PublicCreatorController;
+use App\Controllers\ReportController;
 use App\Core\Router;
 use App\Middleware\ActiveCreatorMiddleware;
 use App\Middleware\AuthMiddleware;
@@ -38,6 +40,12 @@ return static function (Router $router): void {
     $router->get('/account/messages/{id}', [MessageController::class, 'show'], [AuthMiddleware::class]);
     $router->post('/account/messages/{id}', [MessageController::class, 'send'], [AuthMiddleware::class]);
     $router->post('/messages/start/{listingId}', [MessageController::class, 'start'], [AuthMiddleware::class]);
+    $router->get('/reports/listing/{id}', [ReportController::class, 'listingForm'], [AuthMiddleware::class]);
+    $router->post('/reports/listing/{id}', [ReportController::class, 'listingStore'], [AuthMiddleware::class]);
+    $router->get('/reports/user/{id}', [ReportController::class, 'userForm'], [AuthMiddleware::class]);
+    $router->post('/reports/user/{id}', [ReportController::class, 'userStore'], [AuthMiddleware::class]);
+    $router->get('/reports/message/{id}', [ReportController::class, 'messageForm'], [AuthMiddleware::class]);
+    $router->post('/reports/message/{id}', [ReportController::class, 'messageStore'], [AuthMiddleware::class]);
     $router->post('/favorites/{listingId}', [FavoriteController::class, 'store'], [AuthMiddleware::class]);
     $router->post('/favorites/{listingId}/delete', [FavoriteController::class, 'destroy'], [AuthMiddleware::class]);
     $router->get('/account/orders', [OrderController::class, 'index'], [AuthMiddleware::class]);
@@ -117,6 +125,34 @@ return static function (Router $router): void {
         AuthMiddleware::class,
         [RoleMiddleware::class, [['moderator']]],
     ]);
+    $router->get('/moderator/reports', [ModeratorReportController::class, 'index'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['moderator']]],
+    ]);
+    $router->get('/moderator/reports/{id}', [ModeratorReportController::class, 'show'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['moderator']]],
+    ]);
+    $router->post('/moderator/reports/{id}/review', [ModeratorReportController::class, 'review'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['moderator']]],
+    ]);
+    $router->post('/moderator/reports/{id}/resolve', [ModeratorReportController::class, 'resolve'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['moderator']]],
+    ]);
+    $router->post('/moderator/reports/{id}/dismiss', [ModeratorReportController::class, 'dismiss'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['moderator']]],
+    ]);
+    $router->post('/moderator/creators/{userId}/suspend', [ModeratorReportController::class, 'suspendCreator'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['moderator']]],
+    ]);
+    $router->post('/moderator/creators/{userId}/restore', [ModeratorReportController::class, 'restoreCreator'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['moderator']]],
+    ]);
     $router->get('/moderator/listings', [ModeratorListingController::class, 'index'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['moderator']]],
@@ -146,6 +182,14 @@ return static function (Router $router): void {
         [RoleMiddleware::class, [['moderator']]],
     ]);
     $router->post('/moderator/listings/{id}/reject', [ModeratorListingController::class, 'reject'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['moderator']]],
+    ]);
+    $router->post('/moderator/listings/{id}/suspend', [ModeratorListingController::class, 'suspend'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['moderator']]],
+    ]);
+    $router->post('/moderator/listings/{id}/restore', [ModeratorListingController::class, 'restore'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['moderator']]],
     ]);

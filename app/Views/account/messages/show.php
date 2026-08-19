@@ -57,6 +57,11 @@ ob_start();
                                 <?php endif; ?>
                             </p>
                             <p class="message-bubble-body"><?= $e($message['body']) ?></p>
+                            <?php if (!$isOwn): ?>
+                                <p>
+                                    <a class="link-muted" href="<?= $e($reportMessageBaseUrl . '/' . $message['id']) ?>">Reportar mensaje</a>
+                                </p>
+                            <?php endif; ?>
                         </article>
                     </li>
                 <?php endforeach; ?>

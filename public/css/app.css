@@ -1501,6 +1501,76 @@ legend {
     gap: var(--space-6);
 }
 
+/* ========== Reports / Moderation ========== */
+
+.report-queue {
+    list-style: none;
+    margin: 0 0 var(--space-8);
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+}
+
+.report-card {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-5, var(--space-6));
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: var(--color-text);
+}
+
+.report-card:hover {
+    border-color: var(--color-text-muted);
+    color: var(--color-text);
+}
+
+.report-card-title {
+    margin: 0 0 var(--space-1);
+    font-size: 1.05rem;
+}
+
+.report-reason {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+}
+
+.report-form,
+.report-detail {
+    max-width: 46rem;
+}
+
+.moderation-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin: var(--space-6) 0;
+}
+
+.moderation-actions form {
+    margin: 0;
+}
+
+.audit-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+}
+
+.audit-list li {
+    padding: var(--space-4);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
 /* ========== Messages ========== */
 
 .message-inbox {

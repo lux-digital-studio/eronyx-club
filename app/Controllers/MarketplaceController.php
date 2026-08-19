@@ -132,6 +132,9 @@ final class MarketplaceController
             'isAuthenticated' => $currentUserId !== null,
             'startConversationUrl' => $this->url('/messages/start/' . $listingId),
             'loginUrl' => $this->url('/login'),
+            'reportListingUrl' => $currentUserId !== null && !$isOwner
+                ? $this->url('/reports/listing/' . $listingId)
+                : null,
             'creatorProfileUrl' => is_array($creatorProfile) ? $this->url('/creator/' . $creatorProfile['username']) : null,
             'creatorUsername' => is_array($creatorProfile) ? $creatorProfile['username'] : null,
             'mediaBaseUrl' => $this->url('/media'),

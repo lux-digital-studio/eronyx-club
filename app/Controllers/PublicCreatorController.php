@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Auth;
 use App\Core\Database;
 use App\Core\Response;
+use App\Core\Session;
 use App\Repositories\ListingRepository;
 use App\Repositories\MediaRepository;
 use App\Repositories\ProfileRepository;
@@ -13,6 +15,7 @@ use App\Repositories\ProfileRepository;
 final class PublicCreatorController
 {
     private Response $response;
+    private Auth $auth;
     private ProfileRepository $profiles;
     private ListingRepository $listings;
     private MediaRepository $media;
@@ -20,6 +23,7 @@ final class PublicCreatorController
     public function __construct()
     {
         $this->response = new Response();
+        $this->auth = new Auth(new Session());
         $pdo = (new Database())->connection();
         $this->profiles = new ProfileRepository($pdo);
         $this->listings = new ListingRepository($pdo);
@@ -46,6 +50,9 @@ final class PublicCreatorController
 
         $listings = $this->listings->findPublishedPublicByOwner((int) $profile['user_id']);
 
+        $currentUserId = $this->auth->id();
+        $canReport = $currentUserId !== null && $currentUserId !== (int) $profile['user_id'];
+
         return $this->view('creator/public/show.php', [
             'profile' => $profile,
             'listings' => $listings,
@@ -54,6 +61,8 @@ final class PublicCreatorController
             ),
             'mediaBaseUrl' => $this->url('/media'),
             'marketplaceUrl' => $this->url('/marketplace'),
+            'canReport' => $canReport,
+            'reportUserUrl' => $canReport ? $this->url('/reports/user/' . $profile['user_id']) : null,
         ]);
     }
 

@@ -111,6 +111,49 @@ final class ProfileRepository
         return $statement->fetchColumn() !== false;
     }
 
+    /**
+     * @param list<int> $userIds
+     * @return array<int, array{user_id: int, display_name: string, username: string}>
+     */
+    public function findSummariesByUserIds(array $userIds): array
+    {
+        $userIds = array_values(array_unique(array_filter($userIds, static fn (int $id): bool => $id > 0)));
+
+        if ($userIds === []) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = [];
+
+        foreach ($userIds as $index => $userId) {
+            $name = 'user_id_' . $index;
+            $placeholders[] = ':' . $name;
+            $params[$name] = $userId;
+        }
+
+        $statement = $this->pdo->prepare(
+            'SELECT user_id, display_name, username
+             FROM profiles
+             WHERE user_id IN (' . implode(', ', $placeholders) . ')
+                AND deleted_at IS NULL'
+        );
+        $statement->execute($params);
+
+        $profiles = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $userId = (int) $row['user_id'];
+            $profiles[$userId] = [
+                'user_id' => $userId,
+                'display_name' => (string) $row['display_name'],
+                'username' => (string) $row['username'],
+            ];
+        }
+
+        return $profiles;
+    }
+
     /** @param array{display_name: string, username: string, bio: string|null} $data */
     public function updateProfile(int $userId, array $data): bool
     {

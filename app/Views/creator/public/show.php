@@ -28,6 +28,9 @@ ob_start();
             <?php if (($profile['bio'] ?? '') !== ''): ?>
                 <p class="profile-bio"><?= $bio($profile['bio']) ?></p>
             <?php endif; ?>
+            <?php if (!empty($canReport) && !empty($reportUserUrl)): ?>
+                <p><a class="btn btn-ghost" href="<?= $e($reportUserUrl) ?>">Reportar usuario</a></p>
+            <?php endif; ?>
         </div>
     </header>
 

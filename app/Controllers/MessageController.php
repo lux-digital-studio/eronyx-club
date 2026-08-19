@@ -156,6 +156,7 @@ final class MessageController
             'sendUrl' => $this->url('/account/messages/' . $conversationId),
             'inboxUrl' => $this->url('/account/messages'),
             'marketplaceUrl' => $this->url('/marketplace'),
+            'reportMessageBaseUrl' => $this->url('/reports/message'),
         ]);
     }
 

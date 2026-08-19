@@ -272,6 +272,87 @@ final class ListingRepository
         return $statement->rowCount() === 1;
     }
 
+    public function suspendEligible(int $id, string $expectedStatus): bool
+    {
+        if (!in_array($expectedStatus, ['published', 'pending_review'], true)) {
+            return false;
+        }
+
+        $statement = $this->pdo->prepare(
+            "UPDATE listings
+             SET status = 'suspended'
+             WHERE id = :id
+                AND status = :expected_status
+                AND deleted_at IS NULL"
+        );
+        $statement->execute([
+            'id' => $id,
+            'expected_status' => $expectedStatus,
+        ]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    public function restoreSuspended(int $id, string $previousStatus): bool
+    {
+        if (!in_array($previousStatus, ['published', 'pending_review'], true)) {
+            return false;
+        }
+
+        $statement = $this->pdo->prepare(
+            'UPDATE listings
+             SET status = :previous_status
+             WHERE id = :id
+                AND status = :suspended_status
+                AND deleted_at IS NULL'
+        );
+        $statement->execute([
+            'previous_status' => $previousStatus,
+            'id' => $id,
+            'suspended_status' => 'suspended',
+        ]);
+
+        return $statement->rowCount() === 1;
+    }
+
+    /**
+     * @param list<int> $ids
+     * @return array<int, array<string, mixed>>
+     */
+    public function findSummariesByIds(array $ids): array
+    {
+        $ids = array_values(array_unique(array_filter($ids, static fn (int $id): bool => $id > 0)));
+
+        if ($ids === []) {
+            return [];
+        }
+
+        $placeholders = [];
+        $params = [];
+
+        foreach ($ids as $index => $id) {
+            $name = 'listing_id_' . $index;
+            $placeholders[] = ':' . $name;
+            $params[$name] = $id;
+        }
+
+        $statement = $this->pdo->prepare(
+            'SELECT id, owner_user_id, title, slug, status, visibility, published_at, deleted_at
+             FROM listings
+             WHERE id IN (' . implode(', ', $placeholders) . ')'
+        );
+        $statement->execute($params);
+
+        $listings = [];
+
+        foreach ($statement->fetchAll() as $row) {
+            $normalized = $this->normalizeListing($row);
+            $listings[$normalized['id']] = $normalized;
+        }
+
+        return $listings;
+    }
+
     /** @param list<int> $categoryIds */
     public function replaceCategories(int $listingId, array $categoryIds): void
     {

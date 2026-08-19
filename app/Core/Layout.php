@@ -89,6 +89,10 @@ final class Layout
             'pending_review' => 'En revisión',
             'published' => 'Publicado',
             'rejected' => 'Rechazado',
+            'open' => 'Abierto',
+            'in_review' => 'En revisión',
+            'resolved' => 'Resuelto',
+            'dismissed' => 'Descartado',
             'active' => 'Activo',
             'suspended' => 'Suspendido',
             'paid' => 'Pagado',
@@ -109,12 +113,73 @@ final class Layout
             'published' => 'badge badge-published',
             'active' => 'badge badge-active',
             'rejected' => 'badge badge-rejected',
+            'open' => 'badge badge-pending',
+            'in_review' => 'badge badge-cover',
+            'resolved' => 'badge badge-published',
+            'dismissed' => 'badge badge-draft',
             'suspended' => 'badge badge-suspended',
             'paid' => 'badge badge-paid',
             'completed' => 'badge badge-completed',
             'fulfilled' => 'badge badge-fulfilled',
             'removed' => 'badge badge-removed',
             default => 'badge',
+        };
+    }
+
+    public static function reportReasonLabel(string $reason): string
+    {
+        return match ($reason) {
+            'spam' => 'Spam',
+            'scam' => 'Estafa',
+            'harassment' => 'Acoso',
+            'illegal_content' => 'Contenido ilegal',
+            'underage_concern' => 'Posible menor / preocupación sobre edad',
+            'non_consensual_content' => 'Contenido no consentido',
+            'misleading' => 'Engañoso',
+            'prohibited_item' => 'Artículo prohibido',
+            'other' => 'Otro',
+            default => $reason,
+        };
+    }
+
+    public static function reportTargetLabel(string $type): string
+    {
+        return match ($type) {
+            'listing' => 'Publicación',
+            'user' => 'Usuario',
+            'message' => 'Mensaje',
+            'report' => 'Reporte',
+            default => $type,
+        };
+    }
+
+    public static function moderationActionLabel(string $action): string
+    {
+        return match ($action) {
+            'listing_suspend' => 'Suspensión de publicación',
+            'listing_restore' => 'Restauración de publicación',
+            'creator_suspend' => 'Suspensión de creator',
+            'creator_restore' => 'Restauración de creator',
+            'report_resolve' => 'Reporte resuelto',
+            'report_dismiss' => 'Reporte descartado',
+            'message_flag' => 'Mensaje señalado',
+            default => $action,
+        };
+    }
+
+    public static function auditEventLabel(string $event): string
+    {
+        return match ($event) {
+            'report_created' => 'Reporte creado',
+            'report_in_review' => 'Reporte en revisión',
+            'report_resolved' => 'Reporte resuelto',
+            'report_dismissed' => 'Reporte descartado',
+            'listing_suspended' => 'Publicación suspendida',
+            'listing_restored' => 'Publicación restaurada',
+            'creator_suspended' => 'Creator suspendido',
+            'creator_restored' => 'Creator restaurado',
+            'moderator_action' => 'Acción de moderación',
+            default => $event,
         };
     }
 
