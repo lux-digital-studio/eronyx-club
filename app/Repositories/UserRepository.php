@@ -17,7 +17,10 @@ final class UserRepository
     public function findByEmail(string $email): ?array
     {
         $statement = $this->pdo->prepare(
-            'SELECT id, email, password_hash, status FROM users WHERE email = :email AND deleted_at IS NULL LIMIT 1'
+            'SELECT id, email, password_hash, status, session_version, deleted_at
+             FROM users
+             WHERE email = :email AND deleted_at IS NULL
+             LIMIT 1'
         );
         $statement->execute(['email' => $email]);
         $user = $statement->fetch();
@@ -84,6 +87,56 @@ final class UserRepository
         ]);
 
         return true;
+    }
+
+    /** @return array{id: int, email: string, password_hash: string, status: string, session_version: int, deleted_at: string|null}|null */
+    public function findAuthById(int $userId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT id, email, password_hash, status, session_version, deleted_at
+             FROM users
+             WHERE id = :id
+             LIMIT 1'
+        );
+        $statement->execute(['id' => $userId]);
+        $user = $statement->fetch();
+
+        if (!is_array($user)) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $user['id'],
+            'email' => (string) $user['email'],
+            'password_hash' => (string) $user['password_hash'],
+            'status' => (string) $user['status'],
+            'session_version' => max(1, (int) $user['session_version']),
+            'deleted_at' => is_string($user['deleted_at']) ? $user['deleted_at'] : null,
+        ];
+    }
+
+    public function sessionVersion(int $userId): int
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT session_version FROM users WHERE id = :id LIMIT 1'
+        );
+        $statement->execute(['id' => $userId]);
+        $version = $statement->fetchColumn();
+
+        return $version === false ? 1 : max(1, (int) $version);
+    }
+
+    public function incrementSessionVersion(int $userId): int
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE users
+             SET session_version = session_version + 1
+             WHERE id = :id
+                AND deleted_at IS NULL'
+        );
+        $statement->execute(['id' => $userId]);
+
+        return $this->sessionVersion($userId);
     }
 
     public function createProfile(int $userId, string $displayName, string $username): void
@@ -183,11 +236,11 @@ final class UserRepository
         return $users;
     }
 
-    /** @return array{id: int, status: string, deleted_at: string|null, roles: list<string>}|null */
+    /** @return array{id: int, status: string, deleted_at: string|null, session_version: int, roles: list<string>}|null */
     public function findAuthorizationContext(int $userId): ?array
     {
         $statement = $this->pdo->prepare(
-            'SELECT u.id, u.status, u.deleted_at, r.name AS role_name
+            'SELECT u.id, u.status, u.deleted_at, u.session_version, r.name AS role_name
              FROM users u
              LEFT JOIN user_roles ur ON ur.user_id = u.id
              LEFT JOIN roles r ON r.id = ur.role_id
@@ -213,6 +266,7 @@ final class UserRepository
             'id' => (int) $first['id'],
             'status' => (string) $first['status'],
             'deleted_at' => is_string($first['deleted_at']) ? $first['deleted_at'] : null,
+            'session_version' => max(1, (int) ($first['session_version'] ?? 1)),
             'roles' => array_values(array_unique($roles)),
         ];
     }

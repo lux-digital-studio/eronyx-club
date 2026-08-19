@@ -58,7 +58,7 @@ final class AuthService
             throw $exception;
         }
 
-        $this->loginUserId($userId);
+        $this->loginUserId($userId, 1);
 
         return $userId;
     }
@@ -86,7 +86,7 @@ final class AuthService
                 }
             }
 
-            $this->loginUserId($userId);
+            $this->loginUserId($userId, max(1, (int) ($user['session_version'] ?? 1)));
             $this->users->updateLastLoginAt($userId);
         } catch (Throwable) {
             $this->logout();
@@ -103,9 +103,11 @@ final class AuthService
         $this->session->invalidate();
     }
 
-    private function loginUserId(int $userId): void
+    private function loginUserId(int $userId, ?int $sessionVersion = null): void
     {
+        $version = $sessionVersion ?? $this->users->sessionVersion($userId);
         $this->session->regenerate();
         $this->session->put('auth_user_id', $userId);
+        $this->session->put('auth_session_version', $version);
     }
 }

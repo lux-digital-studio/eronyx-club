@@ -30,7 +30,11 @@ final class AuthMiddleware implements MiddlewareInterface
 
     public function handle(Request $request, Response $response): bool
     {
-        if ($this->auth->check() && $this->authorization->isActive()) {
+        if (
+            $this->auth->check()
+            && $this->authorization->isActive()
+            && $this->auth->sessionVersion() === $this->authorization->sessionVersion()
+        ) {
             return true;
         }
 

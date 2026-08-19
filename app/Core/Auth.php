@@ -35,4 +35,19 @@ final class Auth
 
         return null;
     }
+
+    public function sessionVersion(): int
+    {
+        $value = $this->session->get('auth_session_version');
+
+        if (is_int($value) && $value > 0) {
+            return $value;
+        }
+
+        if (is_string($value) && ctype_digit($value) && (int) $value > 0) {
+            return (int) $value;
+        }
+
+        return 1;
+    }
 }

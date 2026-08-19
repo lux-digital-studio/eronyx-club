@@ -53,12 +53,14 @@ final class RegisterValidator
 
         if ($password === '') {
             $errors['password'] = 'La contraseña es obligatoria.';
-        } elseif (strlen($password) < 10) {
-            $errors['password'] = 'La contraseña debe tener al menos 10 caracteres.';
-        } elseif (strlen($password) > 255) {
-            $errors['password'] = 'La contraseña no puede superar 255 caracteres.';
-        } elseif ($password !== $confirmation) {
-            $errors['password_confirmation'] = 'La confirmación de contraseña no coincide.';
+        } else {
+            $policyError = PasswordPolicy::error($password);
+
+            if ($policyError !== null) {
+                $errors['password'] = $policyError;
+            } elseif ($password !== $confirmation) {
+                $errors['password_confirmation'] = 'La confirmación de contraseña no coincide.';
+            }
         }
 
         return [

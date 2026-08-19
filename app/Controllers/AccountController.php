@@ -45,6 +45,7 @@ final class AccountController
             'unreadCount' => $unreadCount,
             'notificationUnreadCount' => $notificationUnreadCount,
             'profileUrl' => $this->url('/account/profile'),
+            'securityUrl' => $this->url('/account/security/password'),
             'creatorStatusUrl' => $this->url('/account/creator/status'),
         ]);
     }

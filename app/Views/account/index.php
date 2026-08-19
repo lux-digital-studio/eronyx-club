@@ -16,6 +16,10 @@ ob_start();
             <h2 class="action-card-title">Editar perfil</h2>
             <p class="action-card-copy">Nombre público, usuario, bio y avatar.</p>
         </a>
+        <a class="action-card" href="<?= $e($securityUrl) ?>">
+            <h2 class="action-card-title">Seguridad de la cuenta</h2>
+            <p class="action-card-copy">Cambiar contraseña.</p>
+        </a>
         <a class="action-card" href="<?= $e($ordersUrl) ?>">
             <h2 class="action-card-title">Mis pedidos</h2>
             <p class="action-card-copy">Consulta el estado de tus compras.</p>

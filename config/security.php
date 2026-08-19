@@ -48,5 +48,8 @@ return [
         'register' => ['max' => 5, 'decay' => 3600],
         'messages' => ['max' => 30, 'decay' => 60],
         'reports' => ['max' => 10, 'decay' => 3600],
+        'forgot_password' => ['max' => 5, 'decay' => 3600],
+        'reset_password' => ['max' => 10, 'decay' => 1800],
+        'change_password' => ['max' => 10, 'decay' => 3600],
     ],
 ];

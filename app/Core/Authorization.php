@@ -8,7 +8,7 @@ use App\Repositories\UserRepository;
 
 final class Authorization
 {
-    /** @var array{id: int, status: string, deleted_at: string|null, roles: list<string>}|null */
+    /** @var array{id: int, status: string, deleted_at: string|null, session_version: int, roles: list<string>}|null */
     private ?array $context = null;
     private bool $loaded = false;
 
@@ -52,7 +52,14 @@ final class Authorization
             && $context['deleted_at'] === null;
     }
 
-    /** @return array{id: int, status: string, deleted_at: string|null, roles: list<string>}|null */
+    public function sessionVersion(): int
+    {
+        $context = $this->context();
+
+        return $context !== null ? max(1, (int) $context['session_version']) : 1;
+    }
+
+    /** @return array{id: int, status: string, deleted_at: string|null, session_version: int, roles: list<string>}|null */
     private function context(): ?array
     {
         if ($this->loaded) {

@@ -14,6 +14,10 @@ ob_start();
         <h1>Iniciar sesión</h1>
         <p class="auth-lead">Accede a tu cuenta ERONYX.</p>
 
+        <?php if (!empty($notice)): ?>
+            <div class="alert alert-success" role="status"><?= $e($notice) ?></div>
+        <?php endif; ?>
+
         <?php if ($errors !== []): ?>
             <div class="alert alert-error" role="alert">
                 <ul>
@@ -40,6 +44,7 @@ ob_start();
             <button class="btn btn-primary" type="submit">Entrar</button>
         </form>
 
+        <p class="auth-footer"><a href="<?= $e($forgotUrl) ?>">¿Has olvidado tu contraseña?</a></p>
         <p class="auth-footer">¿No tienes cuenta? <a href="<?= $e($registerUrl) ?>">Crear cuenta</a></p>
     </div>
 </div>

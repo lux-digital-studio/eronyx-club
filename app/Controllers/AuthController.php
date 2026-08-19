@@ -103,8 +103,10 @@ final class AuthController
             'csrf' => $this->csrf->token(),
             'errors' => [],
             'old' => [],
+            'notice' => $this->takeNotice(),
             'action' => $this->url('/login'),
             'registerUrl' => $this->url('/register'),
+            'forgotUrl' => $this->url('/forgot-password'),
         ]);
     }
 
@@ -138,8 +140,10 @@ final class AuthController
                 'csrf' => $this->csrf->token(),
                 'errors' => ['auth' => 'Email o contraseña incorrectos.'],
                 'old' => $this->old(['email']),
+                'notice' => '',
                 'action' => $this->url('/login'),
                 'registerUrl' => $this->url('/register'),
+                'forgotUrl' => $this->url('/forgot-password'),
             ]);
         }
 
@@ -184,6 +188,14 @@ final class AuthController
         }
 
         return $old;
+    }
+
+    private function takeNotice(): string
+    {
+        $notice = $this->session->get('auth_notice');
+        $this->session->remove('auth_notice');
+
+        return is_string($notice) ? $notice : '';
     }
 
     private function url(string $path): string
