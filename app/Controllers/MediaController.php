@@ -191,7 +191,13 @@ final class MediaController
         header('Content-Type: ' . (string) $media['mime_type']);
         header('X-Content-Type-Options: nosniff');
         header('Content-Disposition: inline');
-        header('Cache-Control: ' . ($access === 'public' ? 'public, max-age=3600' : 'private, no-store'));
+
+        if ($access === 'public') {
+            header('Cache-Control: public, max-age=3600');
+        } else {
+            header('Cache-Control: private, no-store');
+            header('Pragma: no-cache');
+        }
 
         if ($media['media_type'] === 'video') {
             header('Accept-Ranges: bytes');
@@ -228,7 +234,7 @@ final class MediaController
             return null;
         }
 
-        if (preg_match('/\Abytes=(\d*)-(\d*)\z/', $header, $matches) !== 1) {
+        if (preg_match('/\\Abytes=(\\d*)-(\\d*)\\z/', $header, $matches) !== 1) {
             return false;
         }
 
@@ -236,6 +242,12 @@ final class MediaController
         $endRaw = $matches[2];
 
         if ($startRaw === '' && $endRaw === '') {
+            return false;
+        }
+
+        if (($startRaw !== '' && (strlen($startRaw) > 15 || !ctype_digit($startRaw)))
+            || ($endRaw !== '' && (strlen($endRaw) > 15 || !ctype_digit($endRaw)))
+        ) {
             return false;
         }
 

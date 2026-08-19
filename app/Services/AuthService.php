@@ -12,6 +12,8 @@ use Throwable;
 
 final class AuthService
 {
+    private const DUMMY_PASSWORD_HASH = '$2y$10$EBVKylk7vGJdYIgg29F4SOO4OfEyR6RJkWv12k3Nm81l8h4yjPotS';
+
     private \PDO $pdo;
     private UserRepository $users;
 
@@ -64,18 +66,26 @@ final class AuthService
     public function attempt(string $email, string $password): bool
     {
         $user = $this->users->findByEmail($email);
+        $hash = is_array($user) && is_string($user['password_hash'] ?? null)
+            ? $user['password_hash']
+            : self::DUMMY_PASSWORD_HASH;
+        $verified = password_verify($password, $hash);
 
-        if ($user === null || $user['status'] !== 'active') {
-            return false;
-        }
-
-        if (!is_string($user['password_hash']) || !password_verify($password, $user['password_hash'])) {
+        if (!is_array($user) || $user['status'] !== 'active' || !$verified) {
             return false;
         }
 
         $userId = (int) $user['id'];
 
         try {
+            if (password_needs_rehash($hash, PASSWORD_DEFAULT)) {
+                $rehashed = password_hash($password, PASSWORD_DEFAULT);
+
+                if (is_string($rehashed)) {
+                    $this->users->updatePasswordHash($userId, $rehashed);
+                }
+            }
+
             $this->loginUserId($userId);
             $this->users->updateLastLoginAt($userId);
         } catch (Throwable) {

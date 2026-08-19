@@ -20,7 +20,7 @@ final class LoginValidator
             $errors['auth'] = 'Email o contraseña incorrectos.';
         }
 
-        if ($password === '') {
+        if ($password === '' || strlen($password) > 255) {
             $errors['auth'] = 'Email o contraseña incorrectos.';
         }
 

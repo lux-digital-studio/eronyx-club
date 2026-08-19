@@ -22,9 +22,15 @@ final class Session
         }
 
         $name = (string) ($this->config['session_name'] ?? 'eronyx_session');
-        $secure = (bool) ($this->config['secure_cookies'] ?? false);
         $httponly = (bool) ($this->config['httponly_cookies'] ?? true);
         $samesite = (string) ($this->config['samesite'] ?? 'Lax');
+        $secure = $this->cookieSecure();
+
+        ini_set('session.use_strict_mode', '1');
+        ini_set('session.use_only_cookies', '1');
+        ini_set('session.use_trans_sid', '0');
+        ini_set('session.cookie_httponly', '1');
+        ini_set('session.cookie_secure', $secure ? '1' : '0');
 
         session_name($name);
         session_set_cookie_params([
@@ -81,17 +87,24 @@ final class Session
 
         if (ini_get('session.use_cookies')) {
             $params = session_get_cookie_params();
-            setcookie(
-                session_name(),
-                '',
-                time() - 42000,
-                $params['path'],
-                $params['domain'],
-                (bool) $params['secure'],
-                (bool) $params['httponly']
-            );
+            setcookie(session_name(), '', [
+                'expires' => time() - 42000,
+                'path' => $params['path'],
+                'domain' => $params['domain'],
+                'secure' => (bool) $params['secure'],
+                'httponly' => (bool) $params['httponly'],
+                'samesite' => $params['samesite'] ?? (string) ($this->config['samesite'] ?? 'Lax'),
+            ]);
         }
 
         session_destroy();
+    }
+
+    private function cookieSecure(): bool
+    {
+        $request = new Request();
+        $app = require dirname(__DIR__, 2) . '/config/app.php';
+
+        return $request->isHttps() && ($app['env'] ?? 'local') === 'production';
     }
 }

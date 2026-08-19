@@ -14,6 +14,7 @@ use App\Repositories\ConversationRepository;
 use App\Repositories\ListingRepository;
 use App\Repositories\MessageRepository;
 use App\Services\MessagingService;
+use App\Services\RateLimiter;
 use App\Validators\MessageValidator;
 use RuntimeException;
 use Throwable;
@@ -26,6 +27,9 @@ final class MessageController
     private Csrf $csrf;
     private MessagingService $messaging;
     private MessageValidator $validator;
+    private RateLimiter $rateLimiter;
+    /** @var array<string, mixed> */
+    private array $security;
 
     public function __construct()
     {
@@ -41,6 +45,8 @@ final class MessageController
             new ListingRepository($pdo)
         );
         $this->validator = new MessageValidator();
+        $this->rateLimiter = new RateLimiter();
+        $this->security = require dirname(__DIR__, 2) . '/config/security.php';
     }
 
     public function index(): string
@@ -112,8 +118,18 @@ final class MessageController
             return $this->renderThread($conversationId, $validation['errors'], $validation['data']['body']);
         }
 
+        $limit = $this->messageRateLimit();
+        $key = 'messages:user:' . $this->userId();
+
+        if ($this->rateLimiter->tooManyAttempts($key, $limit['max'])) {
+            $this->response->tooManyRequests($this->rateLimiter->retryAfter($key));
+
+            return null;
+        }
+
         try {
             $this->messaging->sendMessage($this->userId(), $conversationId, $validation['data']['body']);
+            $this->rateLimiter->hit($key, $limit['decay']);
             $this->csrf->regenerate();
             $this->response->redirect($this->url('/account/messages/' . $conversationId));
 
@@ -201,6 +217,17 @@ final class MessageController
         $this->response->send('Solicitud no válida.', 403);
 
         return null;
+    }
+
+    /** @return array{max: int, decay: int} */
+    private function messageRateLimit(): array
+    {
+        $limits = $this->security['rate_limits']['messages'] ?? [];
+
+        return [
+            'max' => max(1, (int) ($limits['max'] ?? 30)),
+            'decay' => max(1, (int) ($limits['decay'] ?? 60)),
+        ];
     }
 
     private function notFound(): ?string

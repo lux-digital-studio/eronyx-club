@@ -73,7 +73,7 @@ final class MarketplaceSearchService
     {
         $q = $this->stringParam($request->query('q'));
         if ($this->length($q) > 100) {
-            $q = $this->clip($q, 100);
+            $q = '';
         }
 
         $category = strtolower($this->stringParam($request->query('category')));
@@ -132,11 +132,6 @@ final class MarketplaceSearchService
     private function length(string $value): int
     {
         return function_exists('mb_strlen') ? mb_strlen($value) : strlen($value);
-    }
-
-    private function clip(string $value, int $max): string
-    {
-        return function_exists('mb_substr') ? (string) mb_substr($value, 0, $max) : substr($value, 0, $max);
     }
 
     private function parsePage(mixed $value): int

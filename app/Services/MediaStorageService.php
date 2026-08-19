@@ -41,11 +41,12 @@ final class MediaStorageService
         }
 
         $tmpPath = (string) ($file['tmp_name'] ?? '');
-        $size = (int) ($file['size'] ?? 0);
 
         if ($tmpPath === '' || !is_file($tmpPath)) {
             throw new RuntimeException('No se pudo leer el archivo subido.');
         }
+
+        $size = (int) filesize($tmpPath);
 
         $finfo = new \finfo(FILEINFO_MIME_TYPE);
         $mimeType = $finfo->file($tmpPath);
@@ -81,6 +82,15 @@ final class MediaStorageService
             throw new RuntimeException('El archivo no es una imagen válida.');
         }
 
+        if ($isImage && $mimeType === 'image/jpeg') {
+            $stripped = $this->reencodeJpegWithoutExif($tmpPath);
+
+            if ($stripped !== $tmpPath) {
+                $tmpPath = $stripped;
+                $size = (int) filesize($tmpPath);
+            }
+        }
+
         $checksum = hash_file('sha256', $tmpPath);
         if (!is_string($checksum) || $checksum === '') {
             throw new RuntimeException('No se pudo validar el archivo.');
@@ -114,7 +124,21 @@ final class MediaStorageService
             throw new RuntimeException('No se pudo preparar el almacenamiento.');
         }
 
-        if (!move_uploaded_file($prepared['tmp_path'], $prepared['absolute_path'])) {
+        if (is_uploaded_file($prepared['tmp_path'])) {
+            $moved = move_uploaded_file($prepared['tmp_path'], $prepared['absolute_path']);
+        } else {
+            $moved = @rename($prepared['tmp_path'], $prepared['absolute_path']);
+
+            if (!$moved && is_file($prepared['tmp_path'])) {
+                $moved = copy($prepared['tmp_path'], $prepared['absolute_path']);
+
+                if ($moved) {
+                    unlink($prepared['tmp_path']);
+                }
+            }
+        }
+
+        if (!$moved) {
             throw new RuntimeException('No se pudo guardar el archivo.');
         }
     }
@@ -140,13 +164,33 @@ final class MediaStorageService
         }
 
         $root = $this->normalizedRoot();
-        $path = str_replace('/', DIRECTORY_SEPARATOR, $storageKey);
+        $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $storageKey);
         $fullPath = $root . DIRECTORY_SEPARATOR . substr($path, strlen('media' . DIRECTORY_SEPARATOR));
-        $directory = dirname($fullPath);
-        $realDirectory = is_dir($directory) ? realpath($directory) : realpath($this->storageRoot);
+        $normalizedFull = str_replace('\\', '/', $fullPath);
+        $normalizedRoot = str_replace('\\', '/', $root);
 
-        if ($realDirectory === false || !str_starts_with(str_replace('\\', '/', $directory), str_replace('\\', '/', $root))) {
+        if (!str_starts_with(strtolower($normalizedFull), strtolower($normalizedRoot) . '/')) {
             throw new RuntimeException('Ruta de media inválida.');
+        }
+
+        $directory = dirname($fullPath);
+
+        if (is_dir($directory)) {
+            $realDirectory = realpath($directory);
+
+            if ($realDirectory === false || !$this->isWithinRoot($realDirectory, $root)) {
+                throw new RuntimeException('Ruta de media inválida.');
+            }
+        }
+
+        if (is_file($fullPath)) {
+            $realFile = realpath($fullPath);
+
+            if ($realFile === false || !$this->isWithinRoot($realFile, $root)) {
+                throw new RuntimeException('Ruta de media inválida.');
+            }
+
+            return $realFile;
         }
 
         return $fullPath;
@@ -155,6 +199,15 @@ final class MediaStorageService
     public function storageRoot(): string
     {
         return $this->normalizedRoot();
+    }
+
+    private function isWithinRoot(string $path, string $root): bool
+    {
+        $normalizedPath = strtolower(str_replace('\\', '/', $path));
+        $normalizedRoot = strtolower(str_replace('\\', '/', rtrim($root, '/\\')));
+
+        return $normalizedPath === $normalizedRoot
+            || str_starts_with($normalizedPath, $normalizedRoot . '/');
     }
 
     private function normalizedRoot(): string
@@ -190,6 +243,52 @@ final class MediaStorageService
             $this->iniBytes((string) ini_get('upload_max_filesize')),
             $this->iniBytes((string) ini_get('post_max_size'))
         );
+    }
+
+    /**
+     * Re-encode JPEG with GD to drop EXIF (including GPS) while preserving
+     * orientation. If GD is unavailable, original bytes are kept.
+     */
+    private function reencodeJpegWithoutExif(string $tmpPath): string
+    {
+        if (!function_exists('imagecreatefromjpeg') || !function_exists('imagejpeg')) {
+            return $tmpPath;
+        }
+
+        $image = @imagecreatefromjpeg($tmpPath);
+
+        if ($image === false) {
+            return $tmpPath;
+        }
+
+        $orientation = 1;
+
+        if (function_exists('exif_read_data')) {
+            $exif = @exif_read_data($tmpPath);
+            $orientation = is_array($exif) ? (int) ($exif['Orientation'] ?? 1) : 1;
+        }
+
+        $image = $this->applyJpegOrientation($image, $orientation);
+        $target = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'eronyx_jpg_' . bin2hex(random_bytes(8)) . '.jpg';
+        $ok = imagejpeg($image, $target, 90);
+        imagedestroy($image);
+
+        if (!$ok || !is_file($target)) {
+            return $tmpPath;
+        }
+
+        return $target;
+    }
+
+    /** @param \GdImage $image @return \GdImage */
+    private function applyJpegOrientation($image, int $orientation)
+    {
+        return match ($orientation) {
+            3 => imagerotate($image, 180, 0) ?: $image,
+            6 => imagerotate($image, -90, 0) ?: $image,
+            8 => imagerotate($image, 90, 0) ?: $image,
+            default => $image,
+        };
     }
 
     private function iniBytes(string $value): int

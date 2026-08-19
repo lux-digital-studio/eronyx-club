@@ -55,6 +55,20 @@ final class UserRepository
         return (int) $this->pdo->lastInsertId();
     }
 
+    public function updatePasswordHash(int $userId, string $passwordHash): void
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE users
+             SET password_hash = :password_hash
+             WHERE id = :id
+                AND deleted_at IS NULL'
+        );
+        $statement->execute([
+            'id' => $userId,
+            'password_hash' => $passwordHash,
+        ]);
+    }
+
     public function updateLastLoginAt(int $userId): bool
     {
         $statement = $this->pdo->prepare(

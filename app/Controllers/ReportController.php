@@ -18,6 +18,7 @@ use App\Repositories\ProfileRepository;
 use App\Repositories\ReportRepository;
 use App\Repositories\UserRepository;
 use App\Services\ReportService;
+use App\Services\RateLimiter;
 use App\Validators\ReportValidator;
 use RuntimeException;
 use Throwable;
@@ -30,6 +31,9 @@ final class ReportController
     private Csrf $csrf;
     private ReportService $reports;
     private ReportValidator $validator;
+    private RateLimiter $rateLimiter;
+    /** @var array<string, mixed> */
+    private array $security;
 
     public function __construct()
     {
@@ -49,6 +53,8 @@ final class ReportController
             new ConversationRepository($pdo)
         );
         $this->validator = new ReportValidator();
+        $this->rateLimiter = new RateLimiter();
+        $this->security = require dirname(__DIR__, 2) . '/config/security.php';
     }
 
     public function listingForm(string $id): ?string
@@ -133,6 +139,15 @@ final class ReportController
             ]);
         }
 
+        $limit = $this->reportRateLimit();
+        $key = 'reports:user:' . $this->userId();
+
+        if ($this->rateLimiter->tooManyAttempts($key, $limit['max'])) {
+            $this->response->tooManyRequests($this->rateLimiter->retryAfter($key));
+
+            return null;
+        }
+
         try {
             match ($type) {
                 'listing' => $this->reports->reportListing(
@@ -155,6 +170,7 @@ final class ReportController
                 ),
             };
 
+            $this->rateLimiter->hit($key, $limit['decay']);
             $this->csrf->regenerate();
             $context = match ($type) {
                 'listing' => $this->reports->listingFormContext($this->userId(), $targetId),
@@ -223,6 +239,17 @@ final class ReportController
         $this->response->notFound();
 
         return null;
+    }
+
+    /** @return array{max: int, decay: int} */
+    private function reportRateLimit(): array
+    {
+        $limits = $this->security['rate_limits']['reports'] ?? [];
+
+        return [
+            'max' => max(1, (int) ($limits['max'] ?? 10)),
+            'decay' => max(1, (int) ($limits['decay'] ?? 3600)),
+        ];
     }
 
     private function url(string $path): string

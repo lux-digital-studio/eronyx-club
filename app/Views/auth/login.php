@@ -34,7 +34,7 @@ ob_start();
 
             <div class="form-group">
                 <label for="password">Contraseña</label>
-                <input id="password" type="password" name="password" required autocomplete="current-password">
+                <input id="password" type="password" name="password" required maxlength="255" autocomplete="current-password">
             </div>
 
             <button class="btn btn-primary" type="submit">Entrar</button>

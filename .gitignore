@@ -6,6 +6,10 @@
 
 /storage/cache/*
 !/storage/cache/.gitkeep
+!/storage/cache/rate-limits/
+!/storage/cache/rate-limits/.gitkeep
+/storage/cache/rate-limits/*
+!/storage/cache/rate-limits/.gitkeep
 
 /storage/private/*
 !/storage/private/.gitkeep

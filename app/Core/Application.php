@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use Throwable;
+
 final class Application
 {
     private Request $request;
@@ -24,7 +26,50 @@ final class Application
 
     public function run(): void
     {
-        $this->router->dispatch();
+        $this->registerErrorHandling();
+
+        $session = new Session();
+        $session->start();
+        $authenticated = (new Auth($session))->check();
+        $this->response->applySecurityHeaders($this->request, $authenticated);
+
+        try {
+            $this->router->dispatch();
+        } catch (Throwable $exception) {
+            $this->handleException($exception);
+        }
+    }
+
+    private function registerErrorHandling(): void
+    {
+        error_reporting(E_ALL);
+        ini_set('display_errors', '0');
+        ini_set('display_startup_errors', '0');
+        ini_set('log_errors', '1');
+
+        set_exception_handler(function (Throwable $exception): void {
+            $this->handleException($exception);
+        });
+
+        set_error_handler(static function (int $severity, string $message, string $file, int $line): bool {
+            if ((error_reporting() & $severity) === 0) {
+                return false;
+            }
+
+            throw new \ErrorException($message, 0, $severity, $file, $line);
+        });
+    }
+
+    private function handleException(Throwable $exception): void
+    {
+        Logger::error('Unhandled exception', [
+            'type' => $exception::class,
+            'message' => $exception->getMessage(),
+        ]);
+
+        if (!headers_sent()) {
+            $this->response->send('Ha ocurrido un error. Inténtalo de nuevo más tarde.', 500);
+        }
     }
 
     private function loadRoutes(): void

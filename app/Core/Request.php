@@ -14,6 +14,55 @@ final class Request
         return strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
     }
 
+    public function clientIp(): string
+    {
+        $remote = (string) ($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0');
+
+        if (filter_var($remote, FILTER_VALIDATE_IP) === false) {
+            return '0.0.0.0';
+        }
+
+        $trusted = $this->trustedProxies();
+
+        if ($trusted === [] || !in_array($remote, $trusted, true)) {
+            return $remote;
+        }
+
+        $forwarded = trim((string) ($_SERVER['HTTP_X_FORWARDED_FOR'] ?? ''));
+
+        if ($forwarded === '') {
+            return $remote;
+        }
+
+        $candidate = trim(explode(',', $forwarded)[0]);
+
+        return filter_var($candidate, FILTER_VALIDATE_IP) !== false ? $candidate : $remote;
+    }
+
+    public function isHttps(): bool
+    {
+        $https = $_SERVER['HTTPS'] ?? '';
+
+        if ($https !== '' && strtolower((string) $https) !== 'off') {
+            return true;
+        }
+
+        if ((int) ($_SERVER['SERVER_PORT'] ?? 0) === 443) {
+            return true;
+        }
+
+        $remote = (string) ($_SERVER['REMOTE_ADDR'] ?? '');
+        $trusted = $this->trustedProxies();
+
+        if ($trusted === [] || !in_array($remote, $trusted, true)) {
+            return false;
+        }
+
+        $proto = strtolower((string) ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? ''));
+
+        return $proto === 'https';
+    }
+
     public function path(): string
     {
         $uri = $_SERVER['REQUEST_URI'] ?? '/';
@@ -65,5 +114,26 @@ final class Request
         }
 
         return $this->parsedInput;
+    }
+
+    /** @return list<string> */
+    private function trustedProxies(): array
+    {
+        $config = require dirname(__DIR__, 2) . '/config/security.php';
+        $proxies = $config['trusted_proxies'] ?? [];
+
+        if (!is_array($proxies)) {
+            return [];
+        }
+
+        $valid = [];
+
+        foreach ($proxies as $proxy) {
+            if (is_string($proxy) && filter_var($proxy, FILTER_VALIDATE_IP) !== false) {
+                $valid[] = $proxy;
+            }
+        }
+
+        return $valid;
     }
 }
