@@ -14,6 +14,11 @@ final class FavoriteRepository
     ) {
     }
 
+    public function connection(): PDO
+    {
+        return $this->pdo;
+    }
+
     public function exists(int $userId, int $listingId): bool
     {
         $statement = $this->pdo->prepare(

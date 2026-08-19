@@ -9,6 +9,7 @@ use App\Core\Csrf;
 use App\Core\Database;
 use App\Core\Session;
 use App\Repositories\ConversationRepository;
+use App\Repositories\NotificationRepository;
 
 final class AccountController
 {
@@ -25,11 +26,13 @@ final class AccountController
     {
         $auth = new Auth($this->session);
         $unreadCount = 0;
+        $notificationUnreadCount = 0;
         $userId = $auth->id();
 
         if ($userId !== null) {
-            $unreadCount = (new ConversationRepository((new Database())->connection()))
-                ->unreadConversationCount($userId);
+            $pdo = (new Database())->connection();
+            $unreadCount = (new ConversationRepository($pdo))->unreadConversationCount($userId);
+            $notificationUnreadCount = (new NotificationRepository($pdo))->countUnreadForUser($userId);
         }
 
         return $this->view('account/index.php', [
@@ -38,7 +41,9 @@ final class AccountController
             'ordersUrl' => $this->url('/account/orders'),
             'favoritesUrl' => $this->url('/account/favorites'),
             'messagesUrl' => $this->url('/account/messages'),
+            'notificationsUrl' => $this->url('/account/notifications'),
             'unreadCount' => $unreadCount,
+            'notificationUnreadCount' => $notificationUnreadCount,
             'profileUrl' => $this->url('/account/profile'),
             'creatorStatusUrl' => $this->url('/account/creator/status'),
         ]);

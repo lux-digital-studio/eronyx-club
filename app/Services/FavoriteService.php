@@ -6,16 +6,25 @@ namespace App\Services;
 
 use App\Repositories\FavoriteRepository;
 use App\Repositories\ListingRepository;
+use App\Repositories\NotificationRepository;
+use App\Repositories\UserRepository;
 use RuntimeException;
 
 final class FavoriteService
 {
     public const PER_PAGE = 12;
 
+    private NotificationService $notifications;
+
     public function __construct(
         private readonly FavoriteRepository $favorites,
-        private readonly ListingRepository $listings
+        private readonly ListingRepository $listings,
+        ?NotificationService $notifications = null
     ) {
+        $this->notifications = $notifications ?? new NotificationService(
+            new NotificationRepository($this->favorites->connection()),
+            new UserRepository($this->favorites->connection())
+        );
     }
 
     public function addFavorite(int $userId, int $listingId): void
@@ -34,9 +43,31 @@ final class FavoriteService
             throw new RuntimeException('not_found');
         }
 
+        $alreadyFavorited = $this->favorites->exists($userId, $listingId);
+
         if (!$this->favorites->add($userId, $listingId)) {
             throw new RuntimeException('not_found');
         }
+
+        if ($alreadyFavorited) {
+            return;
+        }
+
+        $ownerUserId = (int) $listing['owner_user_id'];
+        $slug = is_string($listing['slug'] ?? null) ? $listing['slug'] : null;
+        $actionUrl = $slug !== null ? '/marketplace/' . $slug : null;
+
+        $this->notifications->notify(
+            $ownerUserId,
+            'listing_favorited',
+            'Alguien ha guardado tu publicación',
+            'Han añadido una de tus publicaciones a favoritos.',
+            $userId,
+            'listing',
+            $listingId,
+            $actionUrl,
+            'favorite:' . $listingId . ':user:' . $userId
+        );
     }
 
     public function removeFavorite(int $userId, int $listingId): void

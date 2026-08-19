@@ -9,6 +9,7 @@ use App\Repositories\CreatorApplicationRepository;
 use App\Repositories\ListingRepository;
 use App\Repositories\MessageRepository;
 use App\Repositories\ModerationActionRepository;
+use App\Repositories\NotificationRepository;
 use App\Repositories\ProfileRepository;
 use App\Repositories\ReportRepository;
 use App\Repositories\UserRepository;
@@ -19,6 +20,8 @@ final class ModerationService
 {
     private const RESTORABLE_LISTING_STATUSES = ['published', 'pending_review'];
 
+    private NotificationService $notifications;
+
     public function __construct(
         private readonly ReportRepository $reports,
         private readonly ModerationActionRepository $actions,
@@ -27,8 +30,13 @@ final class ModerationService
         private readonly UserRepository $users,
         private readonly ProfileRepository $profiles,
         private readonly MessageRepository $messages,
-        private readonly CreatorApplicationRepository $creatorProfiles
+        private readonly CreatorApplicationRepository $creatorProfiles,
+        ?NotificationService $notifications = null
     ) {
+        $this->notifications = $notifications ?? new NotificationService(
+            new NotificationRepository($this->reports->connection()),
+            $this->users
+        );
     }
 
     public function openReportCount(): int
@@ -152,6 +160,7 @@ final class ModerationService
                 ]);
             }
 
+            $this->notifyReporter((int) $report['reporter_user_id'], $reportId, 'resolved', $moderatorUserId);
             $pdo->commit();
 
             return 'updated';
@@ -199,6 +208,7 @@ final class ModerationService
                 'target_type' => $report['target_type'],
                 'target_id' => $report['target_id'],
             ]);
+            $this->notifyReporter((int) $report['reporter_user_id'], $reportId, 'dismissed', $moderatorUserId);
             $pdo->commit();
 
             return 'updated';
@@ -241,7 +251,7 @@ final class ModerationService
                 return 'noop';
             }
 
-            $this->actions->createAction(
+            $actionId = $this->actions->createAction(
                 $moderatorUserId,
                 'listing',
                 $listingId,
@@ -253,6 +263,15 @@ final class ModerationService
             $this->audit->record($moderatorUserId, 'listing_suspended', 'listing', $listingId, [
                 'previous_status' => $currentStatus,
             ]);
+            $this->notifyListingOwner(
+                $listing,
+                'listing_suspended',
+                'Tu publicación ha sido suspendida',
+                'Una de tus publicaciones ha sido suspendida por moderación.',
+                'suspended',
+                $moderatorUserId,
+                $actionId
+            );
             $pdo->commit();
 
             return 'updated';
@@ -296,7 +315,7 @@ final class ModerationService
                 return 'noop';
             }
 
-            $this->actions->createAction(
+            $actionId = $this->actions->createAction(
                 $moderatorUserId,
                 'listing',
                 $listingId,
@@ -308,6 +327,15 @@ final class ModerationService
             $this->audit->record($moderatorUserId, 'listing_restored', 'listing', $listingId, [
                 'restored_status' => $previousStatus,
             ]);
+            $this->notifyListingOwner(
+                $listing,
+                'listing_restored',
+                'Tu publicación ha sido restaurada',
+                'Una de tus publicaciones ha vuelto a estar disponible.',
+                'restored',
+                $moderatorUserId,
+                $actionId
+            );
             $pdo->commit();
 
             return 'updated';
@@ -348,10 +376,21 @@ final class ModerationService
                 return 'noop';
             }
 
-            $this->actions->createAction($moderatorUserId, 'user', $userId, 'creator_suspend');
+            $actionId = $this->actions->createAction($moderatorUserId, 'user', $userId, 'creator_suspend');
             $this->audit->record($moderatorUserId, 'creator_suspended', 'user', $userId, [
                 'creator_profile_id' => $profile['id'],
             ]);
+            $this->notifications->notify(
+                $userId,
+                'creator_suspended',
+                'Tu perfil creator ha sido suspendido',
+                'Tu acceso a la zona creator está suspendido.',
+                $moderatorUserId,
+                'user',
+                $userId,
+                '/account/creator/status',
+                'creator:' . $userId . ':suspended:' . $actionId
+            );
             $pdo->commit();
 
             return 'updated';
@@ -392,10 +431,21 @@ final class ModerationService
                 return 'noop';
             }
 
-            $this->actions->createAction($moderatorUserId, 'user', $userId, 'creator_restore');
+            $actionId = $this->actions->createAction($moderatorUserId, 'user', $userId, 'creator_restore');
             $this->audit->record($moderatorUserId, 'creator_restored', 'user', $userId, [
                 'creator_profile_id' => $profile['id'],
             ]);
+            $this->notifications->notify(
+                $userId,
+                'creator_restored',
+                'Tu perfil creator ha sido restaurado',
+                'Ya puedes volver a usar la zona creator.',
+                $moderatorUserId,
+                'user',
+                $userId,
+                '/account/creator/status',
+                'creator:' . $userId . ':restored:' . $actionId
+            );
             $pdo->commit();
 
             return 'updated';
@@ -406,6 +456,46 @@ final class ModerationService
 
             throw $exception;
         }
+    }
+
+    private function notifyReporter(int $reporterUserId, int $reportId, string $outcome, int $moderatorUserId): void
+    {
+        $this->notifications->notify(
+            $reporterUserId,
+            'report_updated',
+            'Tu reporte ha sido revisado',
+            'Tu reporte ha sido revisado.',
+            $moderatorUserId,
+            'report',
+            $reportId,
+            null,
+            'report:' . $reportId . ':' . $outcome . ':' . $reporterUserId
+        );
+    }
+
+    /** @param array<string, mixed> $listing */
+    private function notifyListingOwner(
+        array $listing,
+        string $type,
+        string $title,
+        string $body,
+        string $dedupeSuffix,
+        int $moderatorUserId,
+        int $actionId
+    ): void {
+        $listingId = (int) $listing['id'];
+
+        $this->notifications->notify(
+            (int) $listing['owner_user_id'],
+            $type,
+            $title,
+            $body,
+            $moderatorUserId,
+            'listing',
+            $listingId,
+            '/creator/listings/' . $listingId,
+            'listing:' . $listingId . ':' . $dedupeSuffix . ':' . $actionId
+        );
     }
 
     /** @return array<string, mixed> */

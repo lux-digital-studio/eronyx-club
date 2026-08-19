@@ -15,6 +15,7 @@ use App\Controllers\FavoriteController;
 use App\Controllers\MarketplaceController;
 use App\Controllers\MediaController;
 use App\Controllers\MessageController;
+use App\Controllers\NotificationController;
 use App\Controllers\ModeratorCreatorApplicationController;
 use App\Controllers\ModeratorController;
 use App\Controllers\ModeratorListingController;
@@ -35,6 +36,9 @@ return static function (Router $router): void {
     $router->get('/marketplace/{slug}', [MarketplaceController::class, 'show']);
     $router->get('/media/{id}', [MediaController::class, 'show']);
     $router->get('/account', [AccountController::class, 'index'], [AuthMiddleware::class]);
+    $router->get('/account/notifications', [NotificationController::class, 'index'], [AuthMiddleware::class]);
+    $router->post('/account/notifications/read-all', [NotificationController::class, 'markAllRead'], [AuthMiddleware::class]);
+    $router->post('/account/notifications/{id}/read', [NotificationController::class, 'markRead'], [AuthMiddleware::class]);
     $router->get('/account/favorites', [FavoriteController::class, 'index'], [AuthMiddleware::class]);
     $router->get('/account/messages', [MessageController::class, 'index'], [AuthMiddleware::class]);
     $router->get('/account/messages/{id}', [MessageController::class, 'show'], [AuthMiddleware::class]);

@@ -6,6 +6,7 @@ namespace App\Core;
 
 use App\Repositories\ConversationRepository;
 use App\Repositories\CreatorApplicationRepository;
+use App\Repositories\NotificationRepository;
 use App\Repositories\ReportRepository;
 use App\Repositories\UserRepository;
 
@@ -22,6 +23,7 @@ final class Nav
      *   showModerator: bool,
      *   showAdmin: bool,
      *   unreadCount: int,
+     *   notificationUnreadCount: int,
      *   openReportCount: int
      * }
      */
@@ -35,6 +37,7 @@ final class Nav
         $showAdmin = false;
         $csrf = null;
         $unreadCount = 0;
+        $notificationUnreadCount = 0;
         $openReportCount = 0;
 
         if ($authenticated) {
@@ -57,6 +60,7 @@ final class Nav
 
             if ($userId !== null) {
                 $unreadCount = (new ConversationRepository($pdo))->unreadConversationCount($userId);
+                $notificationUnreadCount = (new NotificationRepository($pdo))->countUnreadForUser($userId);
             }
 
             $csrf = (new Csrf($session))->token();
@@ -70,6 +74,7 @@ final class Nav
             'showModerator' => $showModerator,
             'showAdmin' => $showAdmin,
             'unreadCount' => $unreadCount,
+            'notificationUnreadCount' => $notificationUnreadCount,
             'openReportCount' => $openReportCount,
         ];
     }

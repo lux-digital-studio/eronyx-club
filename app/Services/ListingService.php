@@ -9,6 +9,8 @@ use App\Core\Database;
 use App\Repositories\CategoryRepository;
 use App\Repositories\ListingRepository;
 use App\Repositories\MediaRepository;
+use App\Repositories\NotificationRepository;
+use App\Repositories\UserRepository;
 use App\Validators\ListingValidator;
 use RuntimeException;
 use Throwable;
@@ -19,18 +21,24 @@ final class ListingService
     private ListingRepository $listings;
     private CategoryRepository $categories;
     private MediaRepository $media;
+    private NotificationService $notifications;
 
     public function __construct(
         private readonly Auth $auth,
         ?\PDO $pdo = null,
         ?ListingRepository $listings = null,
         ?CategoryRepository $categories = null,
-        ?MediaRepository $media = null
+        ?MediaRepository $media = null,
+        ?NotificationService $notifications = null
     ) {
         $this->pdo = $pdo ?? (new Database())->connection();
         $this->listings = $listings ?? new ListingRepository($this->pdo);
         $this->categories = $categories ?? new CategoryRepository($this->pdo);
         $this->media = $media ?? new MediaRepository($this->pdo);
+        $this->notifications = $notifications ?? new NotificationService(
+            new NotificationRepository($this->pdo),
+            new UserRepository($this->pdo)
+        );
     }
 
     /** @param array{title: string, description: string|null, listing_type: string, price: string, currency: string, visibility: string, category_ids: list<int>} $data */
@@ -137,12 +145,68 @@ final class ListingService
 
     public function approve(int $listingId): bool
     {
-        return $this->listings->approvePending($listingId);
+        $listing = $this->listings->findById($listingId);
+        $updated = $this->listings->approvePending($listingId);
+
+        if ($updated && $listing !== null) {
+            $this->notifyListingOwner(
+                $listing,
+                'listing_approved',
+                'Tu publicación ha sido aprobada',
+                'Tu publicación ya está disponible según su visibilidad.',
+                'approved'
+            );
+        }
+
+        return $updated;
     }
 
     public function reject(int $listingId): bool
     {
-        return $this->listings->rejectPending($listingId);
+        $listing = $this->listings->findById($listingId);
+        $updated = $this->listings->rejectPending($listingId);
+
+        if ($updated && $listing !== null) {
+            $this->notifyListingOwner(
+                $listing,
+                'listing_rejected',
+                'Tu publicación ha sido rechazada',
+                'Revisa el contenido y vuelve a enviarla cuando esté lista.',
+                'rejected'
+            );
+        }
+
+        return $updated;
+    }
+
+    /** @param array<string, mixed> $listing */
+    private function notifyListingOwner(
+        array $listing,
+        string $type,
+        string $title,
+        string $body,
+        string $dedupeSuffix
+    ): void {
+        $listingId = (int) $listing['id'];
+
+        $this->notifications->notify(
+            (int) $listing['owner_user_id'],
+            $type,
+            $title,
+            $body,
+            null,
+            'listing',
+            $listingId,
+            '/creator/listings/' . $listingId,
+            'listing:' . $listingId . ':' . $dedupeSuffix . ':' . $this->cycleKey($listing['updated_at'] ?? $listing['created_at'] ?? null)
+        );
+    }
+
+    private function cycleKey(mixed $timestamp): string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $timestamp);
+
+        return is_string($digits) && $digits !== '' ? $digits : '0';
     }
 
     private function uniqueSlug(string $title, ?int $ignoreListingId = null): string

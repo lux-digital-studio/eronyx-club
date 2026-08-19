@@ -7,17 +7,27 @@ namespace App\Services;
 use App\Repositories\ConversationRepository;
 use App\Repositories\ListingRepository;
 use App\Repositories\MessageRepository;
+use App\Repositories\NotificationRepository;
+use App\Repositories\UserRepository;
 use PDOException;
 use RuntimeException;
 use Throwable;
 
 final class MessagingService
 {
+    private NotificationService $notifications;
+
     public function __construct(
         private readonly ConversationRepository $conversations,
         private readonly MessageRepository $messages,
-        private readonly ListingRepository $listings
+        private readonly ListingRepository $listings,
+        ?NotificationService $notifications = null
     ) {
+        $pdo = $this->conversations->connection();
+        $this->notifications = $notifications ?? new NotificationService(
+            new NotificationRepository($pdo),
+            new UserRepository($pdo)
+        );
     }
 
     /**
@@ -127,8 +137,24 @@ final class MessagingService
 
         try {
             $pdo->beginTransaction();
-            $this->messages->insert($conversationId, $senderUserId, $body);
+            $messageId = $this->messages->insert($conversationId, $senderUserId, $body);
             $this->conversations->touchLastMessageAt($conversationId);
+            $recipientUserId = $this->conversations->otherParticipantUserId($conversationId, $senderUserId);
+
+            if ($recipientUserId !== null && $recipientUserId !== $senderUserId) {
+                $this->notifications->notify(
+                    $recipientUserId,
+                    'new_message',
+                    'Tienes un mensaje nuevo',
+                    'Has recibido un mensaje en una de tus conversaciones.',
+                    $senderUserId,
+                    'message',
+                    $messageId,
+                    '/account/messages/' . $conversationId,
+                    'message:' . $messageId . ':recipient:' . $recipientUserId
+                );
+            }
+
             $pdo->commit();
         } catch (Throwable $exception) {
             if ($pdo->inTransaction()) {

@@ -1627,6 +1627,10 @@ legend {
     font-size: var(--text-sm);
 }
 
+.message-thread-card-meta form {
+    margin: 0;
+}
+
 .message-thread-header {
     display: flex;
     flex-wrap: wrap;

@@ -6,6 +6,8 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Repositories\CreatorApplicationRepository;
+use App\Repositories\NotificationRepository;
+use App\Repositories\UserRepository;
 use RuntimeException;
 use Throwable;
 
@@ -13,11 +15,19 @@ final class CreatorApplicationService
 {
     private \PDO $pdo;
     private CreatorApplicationRepository $applications;
+    private NotificationService $notifications;
 
-    public function __construct(?\PDO $pdo = null, ?CreatorApplicationRepository $applications = null)
-    {
+    public function __construct(
+        ?\PDO $pdo = null,
+        ?CreatorApplicationRepository $applications = null,
+        ?NotificationService $notifications = null
+    ) {
         $this->pdo = $pdo ?? (new Database())->connection();
         $this->applications = $applications ?? new CreatorApplicationRepository($this->pdo);
+        $this->notifications = $notifications ?? new NotificationService(
+            new NotificationRepository($this->pdo),
+            new UserRepository($this->pdo)
+        );
     }
 
     /** @return array<string, mixed>|null */
@@ -125,6 +135,36 @@ final class CreatorApplicationService
                 $this->applications->rejectPendingAgeDeclaration((int) $application['user_id']);
             }
 
+            $recipientUserId = (int) $application['user_id'];
+            $applicationId = (int) $application['id'];
+            $cycle = $this->cycleKey($application['updated_at'] ?? $application['created_at'] ?? null);
+
+            if ($approve) {
+                $this->notifications->notify(
+                    $recipientUserId,
+                    'creator_application_approved',
+                    'Tu solicitud de creator ha sido aprobada',
+                    'Ya puedes acceder a la zona creator.',
+                    $reviewerUserId,
+                    'creator_application',
+                    $applicationId,
+                    '/account/creator/status',
+                    'creator_application:' . $applicationId . ':approved:' . $cycle
+                );
+            } else {
+                $this->notifications->notify(
+                    $recipientUserId,
+                    'creator_application_rejected',
+                    'Tu solicitud de creator ha sido rechazada',
+                    'Puedes revisar el estado de tu solicitud en tu cuenta.',
+                    $reviewerUserId,
+                    'creator_application',
+                    $applicationId,
+                    '/account/creator/status',
+                    'creator_application:' . $applicationId . ':rejected:' . $cycle
+                );
+            }
+
             $this->pdo->commit();
 
             return true;
@@ -145,5 +185,12 @@ final class CreatorApplicationService
             && $application['status'] === 'active'
             && $application['deleted_at'] === null
             && $this->applications->hasCreatorRole($userId);
+    }
+
+    private function cycleKey(mixed $timestamp): string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $timestamp);
+
+        return is_string($digits) && $digits !== '' ? $digits : '0';
     }
 }

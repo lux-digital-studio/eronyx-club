@@ -30,6 +30,12 @@ ob_start();
             </h2>
             <p class="action-card-copy">Conversaciones con creators y buyers.</p>
         </a>
+        <a class="action-card" href="<?= $e($notificationsUrl) ?>">
+            <h2 class="action-card-title">
+                Notificaciones<?php if (($notificationUnreadCount ?? 0) > 0): ?> (<?= $e((string) $notificationUnreadCount) ?>)<?php endif; ?>
+            </h2>
+            <p class="action-card-copy">Avisos de mensajes, pedidos y moderación.</p>
+        </a>
         <a class="action-card" href="<?= $e($creatorStatusUrl) ?>">
             <h2 class="action-card-title">Estado creator</h2>
             <p class="action-card-copy">Solicitud y acceso a la zona creator.</p>

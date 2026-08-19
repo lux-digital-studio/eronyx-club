@@ -6,9 +6,11 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Repositories\ListingRepository;
+use App\Repositories\NotificationRepository;
 use App\Repositories\OrderItemRepository;
 use App\Repositories\OrderRepository;
 use App\Repositories\PaymentRepository;
+use App\Repositories\UserRepository;
 use RuntimeException;
 use Throwable;
 
@@ -20,6 +22,7 @@ final class CommerceService
     private PaymentRepository $payments;
     private ListingRepository $listings;
     private PrivateContentAccessService $privateAccess;
+    private NotificationService $notifications;
 
     public function __construct(
         ?\PDO $pdo = null,
@@ -27,7 +30,8 @@ final class CommerceService
         ?OrderItemRepository $items = null,
         ?PaymentRepository $payments = null,
         ?ListingRepository $listings = null,
-        ?PrivateContentAccessService $privateAccess = null
+        ?PrivateContentAccessService $privateAccess = null,
+        ?NotificationService $notifications = null
     ) {
         $this->pdo = $pdo ?? (new Database())->connection();
         $this->orders = $orders ?? new OrderRepository($this->pdo);
@@ -35,6 +39,10 @@ final class CommerceService
         $this->payments = $payments ?? new PaymentRepository($this->pdo);
         $this->listings = $listings ?? new ListingRepository($this->pdo);
         $this->privateAccess = $privateAccess ?? new PrivateContentAccessService(null, $this->listings, null, $this->pdo);
+        $this->notifications = $notifications ?? new NotificationService(
+            new NotificationRepository($this->pdo),
+            new UserRepository($this->pdo)
+        );
     }
 
     /** @return array<string, mixed> */
@@ -131,8 +139,30 @@ final class CommerceService
 
             if ($allFulfilled) {
                 $this->orders->markCompleted($orderId);
+                $this->notifications->notify(
+                    (int) $order['buyer_user_id'],
+                    'order_completed',
+                    'Tu pedido se ha completado',
+                    'El pago de prueba se ha confirmado y tu pedido está listo.',
+                    null,
+                    'order',
+                    $orderId,
+                    '/account/orders/' . $orderId,
+                    'order:' . $orderId . ':completed'
+                );
             } else {
                 $this->orders->markPaid($orderId);
+                $this->notifications->notify(
+                    (int) $order['buyer_user_id'],
+                    'order_paid',
+                    'Hemos recibido el pago de tu pedido',
+                    'El pago de prueba se ha confirmado. El pedido sigue en proceso.',
+                    null,
+                    'order',
+                    $orderId,
+                    '/account/orders/' . $orderId,
+                    'order:' . $orderId . ':paid'
+                );
             }
 
             $this->pdo->commit();
