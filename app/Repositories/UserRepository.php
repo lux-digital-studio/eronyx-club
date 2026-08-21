@@ -169,6 +169,24 @@ final class UserRepository
         return $this->sessionVersion($userId);
     }
 
+    public function updateStatusIf(int $userId, string $from, string $to): bool
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE users
+             SET status = :to_status
+             WHERE id = :id
+                AND status = :from_status
+                AND deleted_at IS NULL'
+        );
+        $statement->execute([
+            'id' => $userId,
+            'from_status' => $from,
+            'to_status' => $to,
+        ]);
+
+        return $statement->rowCount() === 1;
+    }
+
     public function createProfile(int $userId, string $displayName, string $username): void
     {
         $statement = $this->pdo->prepare(

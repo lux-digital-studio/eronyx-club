@@ -95,6 +95,7 @@ final class Layout
             'dismissed' => 'Descartado',
             'active' => 'Activo',
             'suspended' => 'Suspendido',
+            'banned' => 'Bloqueado',
             'paid' => 'Pagado',
             'completed' => 'Completado',
             'pending' => 'Pendiente',
@@ -118,6 +119,7 @@ final class Layout
             'resolved' => 'badge badge-published',
             'dismissed' => 'badge badge-draft',
             'suspended' => 'badge badge-suspended',
+            'banned' => 'badge badge-removed',
             'paid' => 'badge badge-paid',
             'completed' => 'badge badge-completed',
             'fulfilled' => 'badge badge-fulfilled',
@@ -179,6 +181,10 @@ final class Layout
             'creator_suspended' => 'Creator suspendido',
             'creator_restored' => 'Creator restaurado',
             'moderator_action' => 'Acción de moderación',
+            'user_suspended' => 'Usuario suspendido',
+            'user_reactivated' => 'Usuario reactivado',
+            'email_verification_sent' => 'Verificación de email enviada',
+            'email_verified' => 'Email verificado',
             default => $event,
         };
     }

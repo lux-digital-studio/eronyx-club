@@ -6,7 +6,13 @@ use App\Controllers\HomeController;
 use App\Controllers\AuthController;
 use App\Controllers\AccountController;
 use App\Controllers\AccountSecurityController;
+use App\Controllers\AdminAuditController;
 use App\Controllers\AdminController;
+use App\Controllers\AdminCreatorController;
+use App\Controllers\AdminListingController;
+use App\Controllers\AdminOrderController;
+use App\Controllers\AdminReportController;
+use App\Controllers\AdminUserController;
 use App\Controllers\CheckoutController;
 use App\Controllers\CreatorApplicationController;
 use App\Controllers\CreatorController;
@@ -215,6 +221,62 @@ return static function (Router $router): void {
         [RoleMiddleware::class, [['moderator']]],
     ]);
     $router->get('/admin', [AdminController::class, 'index'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->get('/admin/users', [AdminUserController::class, 'index'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->get('/admin/users/{id}', [AdminUserController::class, 'show'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->post('/admin/users/{id}/suspend', [AdminUserController::class, 'suspend'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->post('/admin/users/{id}/reactivate', [AdminUserController::class, 'reactivate'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->get('/admin/creators', [AdminCreatorController::class, 'index'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->get('/admin/creators/{id}', [AdminCreatorController::class, 'show'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->get('/admin/listings', [AdminListingController::class, 'index'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->get('/admin/listings/{id}', [AdminListingController::class, 'show'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->get('/admin/orders', [AdminOrderController::class, 'index'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->get('/admin/orders/{id}', [AdminOrderController::class, 'show'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->get('/admin/reports', [AdminReportController::class, 'index'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->get('/admin/reports/{id}', [AdminReportController::class, 'show'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->get('/admin/audit', [AdminAuditController::class, 'index'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['admin']]],
+    ]);
+    $router->get('/admin/audit/{id}', [AdminAuditController::class, 'show'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['admin']]],
     ]);

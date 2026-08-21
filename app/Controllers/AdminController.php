@@ -4,13 +4,16 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
-final class AdminController
+final class AdminController extends AdminBaseController
 {
     public function index(): string
     {
-        ob_start();
-        require dirname(__DIR__) . '/Views/admin/index.php';
+        $dashboard = $this->admin->dashboard();
 
-        return (string) ob_get_clean();
+        return $this->view('admin/index.php', [
+            'counts' => $dashboard['counts'],
+            'recentAudit' => $dashboard['recentAudit'],
+            'activeNav' => 'dashboard',
+        ]);
     }
 }

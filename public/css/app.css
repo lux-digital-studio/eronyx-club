@@ -1406,6 +1406,118 @@ legend {
     border-radius: var(--radius-lg);
 }
 
+.admin-shell {
+    display: grid;
+    gap: var(--space-6);
+}
+
+.admin-subnav-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.admin-subnav-link {
+    display: inline-block;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+}
+
+.admin-subnav-link.is-active,
+.admin-subnav-link[aria-current="page"] {
+    color: var(--color-text);
+    border-color: var(--color-accent);
+}
+
+.admin-stat-grid {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.admin-stat-card {
+    display: block;
+    padding: var(--space-5, var(--space-6));
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    text-decoration: none;
+    color: inherit;
+}
+
+.admin-stat-title {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+}
+
+.admin-stat-value {
+    margin: 0 0 var(--space-2);
+    font-size: 1.75rem;
+}
+
+.admin-filters {
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    align-items: end;
+}
+
+.admin-detail-grid {
+    display: grid;
+    gap: var(--space-4);
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.admin-panel,
+.admin-section {
+    padding: var(--space-5, var(--space-6));
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+}
+
+.admin-section-title {
+    margin: 0 0 var(--space-4);
+    font-size: 1.1rem;
+}
+
+.admin-dl {
+    display: grid;
+    grid-template-columns: minmax(7rem, 12rem) 1fr;
+    gap: var(--space-2) var(--space-4);
+    margin: 0;
+}
+
+.admin-dl dt {
+    color: var(--color-text-muted);
+}
+
+.admin-dl dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.admin-metadata {
+    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+}
+
+@media (max-width: 767px) {
+    .admin-filters {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-dl {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ========== Commerce ========== */
 
 .checkout-shell {
