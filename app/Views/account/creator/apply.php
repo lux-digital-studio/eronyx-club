@@ -8,7 +8,7 @@ ob_start();
 <div class="container">
     <header class="page-header">
         <h1 class="page-title">Solicitar acceso creator</h1>
-        <p class="page-subtitle">Confirma tu edad y envía la solicitud de revisión.</p>
+        <p class="page-subtitle">Confirma tu mayoría de edad (declaración legal) y envía la solicitud. Esta declaración no sustituye una verificación de identidad.</p>
     </header>
 
     <?php if ($errors !== []): ?>
@@ -25,7 +25,7 @@ ob_start();
 
             <label class="checkbox-row">
                 <input type="checkbox" name="adult_confirmation" value="1">
-                <span>Declaro que soy mayor de 18 años.</span>
+                <span>Declaro que soy mayor de 18 años. Esta casilla es una declaración legal, no una verificación KYC.</span>
             </label>
 
             <label class="checkbox-row">

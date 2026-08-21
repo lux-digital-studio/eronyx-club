@@ -21,7 +21,12 @@ ob_start();
                 <li class="queue-item">
                     <div>
                         <strong><?= $e($application['display_name']) ?></strong>
-                        <p class="muted">@<?= $e($application['username']) ?> · <?= $e($application['created_at']) ?></p>
+                        <p class="muted">
+                            @<?= $e($application['username']) ?>
+                            · <?= $e(\App\Core\Layout::verificationMethodLabel((string) ($application['age_method'] ?? ''))) ?>
+                            · <?= $e(\App\Core\Layout::statusLabel((string) ($application['age_status'] ?? 'none'))) ?>
+                            · <?= $e($application['created_at']) ?>
+                        </p>
                     </div>
                     <a class="btn btn-secondary" href="<?= $e($baseUrl . '/' . $application['id']) ?>">Revisar</a>
                 </li>

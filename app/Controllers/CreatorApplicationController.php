@@ -9,6 +9,7 @@ use App\Core\Csrf;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
+use App\Services\AgeVerificationService;
 use App\Services\CreatorApplicationService;
 use App\Validators\CreatorApplicationValidator;
 use RuntimeException;
@@ -20,6 +21,7 @@ final class CreatorApplicationController
     private Auth $auth;
     private Csrf $csrf;
     private CreatorApplicationService $service;
+    private AgeVerificationService $verification;
 
     public function __construct()
     {
@@ -29,6 +31,7 @@ final class CreatorApplicationController
         $this->auth = new Auth($session);
         $this->csrf = new Csrf($session);
         $this->service = new CreatorApplicationService();
+        $this->verification = new AgeVerificationService();
     }
 
     public function showApply(): ?string
@@ -92,10 +95,12 @@ final class CreatorApplicationController
 
     public function status(): string
     {
-        $application = $this->service->findForUser((int) $this->auth->id());
+        $userId = (int) $this->auth->id();
+        $application = $this->service->findForUser($userId);
 
         return $this->view('account/creator/status.php', [
             'status' => $application['status'] ?? 'none',
+            'verification' => $this->verification->publicSummary($userId),
             'applyUrl' => $this->url('/account/creator/apply'),
             'creatorUrl' => $this->url('/creator'),
             'accountUrl' => $this->url('/account'),

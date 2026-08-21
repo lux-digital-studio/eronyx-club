@@ -21,11 +21,36 @@ ob_start();
             <dd><?= $e($application['display_name']) ?></dd>
             <dt>Usuario</dt>
             <dd>@<?= $e($application['username']) ?></dd>
-            <dt>Declaración de edad</dt>
-            <dd><?= $e($application['age_method'] ?? 'none') ?> / <?= $e($application['age_status'] ?? 'none') ?></dd>
+            <dt>Verificación</dt>
+            <dd>
+                <?= $e(\App\Core\Layout::verificationMethodLabel((string) ($application['age_method'] ?? ''))) ?>
+                /
+                <span class="<?= $e(\App\Core\Layout::statusBadgeClass((string) ($application['age_status'] ?? 'none'))) ?>">
+                    <?= $e(\App\Core\Layout::statusLabel((string) ($application['age_status'] ?? 'none'))) ?>
+                </span>
+            </dd>
             <dt>Fecha</dt>
             <dd><?= $e($application['created_at']) ?></dd>
         </dl>
+
+        <?php if (($notice ?? '') !== ''): ?>
+            <div class="alert alert-success" role="status"><?= $e($notice) ?></div>
+        <?php endif; ?>
+
+        <?php if (!empty($canManualReview) && ($application['age_status'] ?? '') === 'pending'): ?>
+            <div class="review-actions">
+                <form method="post" action="<?= $e($verifyAgeUrl) ?>">
+                    <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                    <button class="btn btn-secondary" type="submit">Confirmar verificación</button>
+                </form>
+                <form method="post" action="<?= $e($rejectAgeUrl) ?>">
+                    <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                    <button class="btn btn-danger" type="submit">Rechazar verificación</button>
+                </form>
+            </div>
+        <?php elseif (empty($canManualReview)): ?>
+            <p class="muted">Estado de verificación de proveedor: solo lectura.</p>
+        <?php endif; ?>
 
         <div class="review-actions">
             <form method="post" action="<?= $e($approveUrl) ?>">

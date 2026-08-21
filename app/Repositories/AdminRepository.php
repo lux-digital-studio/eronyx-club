@@ -965,7 +965,7 @@ final class AdminRepository
     private function latestAgeVerification(int $userId): ?array
     {
         $statement = $this->pdo->prepare(
-            'SELECT id, status, method, verified_at, expires_at, created_at
+            'SELECT id, status, method, provider, reviewed_at, verified_at, expires_at, created_at
              FROM age_verifications
              WHERE user_id = :user_id
              ORDER BY id DESC

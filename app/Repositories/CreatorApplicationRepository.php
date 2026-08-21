@@ -57,9 +57,7 @@ final class CreatorApplicationRepository
                 SELECT av2.id
                 FROM age_verifications av2
                 WHERE av2.user_id = cp.user_id
-                   AND av2.status = 'pending'
-                   AND av2.method = 'self_declaration'
-                ORDER BY av2.id DESC
+                ORDER BY CASE WHEN av2.status = 'pending' THEN 0 ELSE 1 END, av2.id DESC
                 LIMIT 1
              )
              WHERE cp.id = :id
@@ -86,9 +84,7 @@ final class CreatorApplicationRepository
                 SELECT av2.id
                 FROM age_verifications av2
                 WHERE av2.user_id = cp.user_id
-                   AND av2.status = 'pending'
-                   AND av2.method = 'self_declaration'
-                ORDER BY av2.id DESC
+                ORDER BY CASE WHEN av2.status = 'pending' THEN 0 ELSE 1 END, av2.id DESC
                 LIMIT 1
              )
              WHERE cp.status = 'pending'

@@ -14,6 +14,7 @@ use App\Repositories\ProfileRepository;
 use App\Repositories\ReportRepository;
 use App\Repositories\UserRepository;
 use App\Services\AccountSecurityService;
+use App\Services\AgeVerificationService;
 use App\Services\CommerceService;
 use App\Services\CreatorApplicationService;
 use App\Services\EmailRenderer;
@@ -578,9 +579,11 @@ try {
 
     MailService::clear();
     $apps = new CreatorApplicationService($pdo);
+    $age = new AgeVerificationService($pdo);
     $applicant = createUser($pdo, "mail.apply.{$suffix}@eronyx.test", "mailap{$suffix}", 'Applicant', $password, ['buyer']);
     $apps->apply($applicant);
     $application = $apps->findForUser($applicant);
+    $age->reviewManual($applicant, $modId, true);
     $approved = $apps->approve((int) $application['id'], $modId);
     check(31, 'Creator approve sends 1 email', $approved && count(mailsOfType('creator_application_approved')) === 1);
     $doubleApprove = $apps->approve((int) $application['id'], $modId);
@@ -681,6 +684,7 @@ try {
     $failApplicant = createUser($pdo, "mail.failc.{$suffix}@eronyx.test", "mailfc{$suffix}", 'Fail Creator', $password, ['buyer']);
     $apps->apply($failApplicant);
     $failApp = $apps->findForUser($failApplicant);
+    $age->reviewManual($failApplicant, $modId, true);
     $failCreator = $apps->approve((int) $failApp['id'], $modId);
     $creatorStatus = $pdo->prepare('SELECT status FROM creator_profiles WHERE user_id = :id LIMIT 1');
     $creatorStatus->execute(['id' => $failApplicant]);

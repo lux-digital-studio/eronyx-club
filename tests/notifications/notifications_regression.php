@@ -15,6 +15,7 @@ use App\Repositories\NotificationRepository;
 use App\Repositories\ProfileRepository;
 use App\Repositories\ReportRepository;
 use App\Repositories\UserRepository;
+use App\Services\AgeVerificationService;
 use App\Services\CommerceService;
 use App\Services\CreatorApplicationService;
 use App\Services\FavoriteService;
@@ -542,9 +543,11 @@ try {
     check(21, 'Self favorite no notification', $selfFavBlocked && countType($pdo, $creatorId, 'listing_favorited') === $beforeFav + 1);
 
     $apps = new CreatorApplicationService($pdo);
+    $age = new AgeVerificationService($pdo);
     $applicant = createUser($pdo, "apply.{$suffix}@eronyx.test", "apply{$suffix}", 'Applicant', $password, ['buyer']);
     $apps->apply($applicant);
     $application = $apps->findForUser($applicant);
+    $age->reviewManual($applicant, $modId, true);
     $approved = $apps->approve((int) $application['id'], $modId);
     $doubleApprove = $apps->approve((int) $application['id'], $modId);
     check(22, 'Creator approve notification', $approved && countType($pdo, $applicant, 'creator_application_approved') === 1);

@@ -24,6 +24,8 @@ final class NotificationService
         'order_completed',
         'order_paid',
         'report_updated',
+        'age_verification_verified',
+        'age_verification_rejected',
     ];
 
     private const ENTITY_TYPES = [
@@ -33,6 +35,7 @@ final class NotificationService
         'order',
         'report',
         'creator_application',
+        'age_verification',
         'user',
     ];
 

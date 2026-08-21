@@ -9,6 +9,7 @@ use App\Core\Csrf;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
+use App\Services\AgeVerificationService;
 use App\Services\CreatorApplicationService;
 use RuntimeException;
 
@@ -18,16 +19,19 @@ final class ModeratorCreatorApplicationController
     private Response $response;
     private Auth $auth;
     private Csrf $csrf;
+    private Session $session;
     private CreatorApplicationService $service;
+    private AgeVerificationService $verification;
 
     public function __construct()
     {
-        $session = new Session();
+        $this->session = new Session();
         $this->request = new Request();
         $this->response = new Response();
-        $this->auth = new Auth($session);
-        $this->csrf = new Csrf($session);
+        $this->auth = new Auth($this->session);
+        $this->csrf = new Csrf($this->session);
         $this->service = new CreatorApplicationService();
+        $this->verification = new AgeVerificationService();
     }
 
     public function index(): string
@@ -57,6 +61,10 @@ final class ModeratorCreatorApplicationController
             'csrf' => $this->csrf->token(),
             'approveUrl' => $this->url('/moderator/creator-applications/' . $applicationId . '/approve'),
             'rejectUrl' => $this->url('/moderator/creator-applications/' . $applicationId . '/reject'),
+            'verifyAgeUrl' => $this->url('/moderator/creator-applications/' . $applicationId . '/verify-age'),
+            'rejectAgeUrl' => $this->url('/moderator/creator-applications/' . $applicationId . '/reject-age'),
+            'canManualReview' => $this->verification->canManualReview(),
+            'notice' => $this->takeNotice(),
             'indexUrl' => $this->url('/moderator/creator-applications'),
         ]);
     }
@@ -87,7 +95,14 @@ final class ModeratorCreatorApplicationController
             $ok = $approve
                 ? $this->service->approve($applicationId, (int) $this->auth->id())
                 : $this->service->reject($applicationId, (int) $this->auth->id());
-        } catch (RuntimeException) {
+        } catch (RuntimeException $exception) {
+            if ($exception->getMessage() === 'verification_required') {
+                $this->flash('No se puede aprobar: la verificación de edad sigue pendiente.');
+                $this->response->redirect($this->url('/moderator/creator-applications/' . $applicationId));
+
+                return null;
+            }
+
             return $this->forbidden();
         }
 
@@ -99,6 +114,65 @@ final class ModeratorCreatorApplicationController
         $this->response->redirect($this->url('/moderator/creator-applications'));
 
         return null;
+    }
+
+    public function verifyAge(string $id): ?string
+    {
+        return $this->reviewAge($id, true);
+    }
+
+    public function rejectAge(string $id): ?string
+    {
+        return $this->reviewAge($id, false);
+    }
+
+    private function reviewAge(string $id, bool $approve): ?string
+    {
+        if (!$this->csrf->validate($this->request->input('_csrf'))) {
+            return $this->forbidden();
+        }
+
+        $applicationId = $this->routeId($id);
+
+        if ($applicationId === null) {
+            return $this->notFound();
+        }
+
+        $application = $this->service->pendingApplication($applicationId);
+
+        if ($application === null) {
+            return $this->notFound();
+        }
+
+        $ok = $this->verification->reviewManual(
+            (int) $application['user_id'],
+            (int) $this->auth->id(),
+            $approve,
+            'age_not_confirmed'
+        );
+
+        if (!$ok) {
+            return $this->forbidden();
+        }
+
+        $this->csrf->regenerate();
+        $this->flash($approve ? 'Verificación de edad confirmada.' : 'Verificación de edad rechazada.');
+        $this->response->redirect($this->url('/moderator/creator-applications/' . $applicationId));
+
+        return null;
+    }
+
+    private function flash(string $message): void
+    {
+        $this->session->put('moderator_notice', $message);
+    }
+
+    private function takeNotice(): string
+    {
+        $notice = $this->session->get('moderator_notice');
+        $this->session->remove('moderator_notice');
+
+        return is_string($notice) ? $notice : '';
     }
 
     private function routeId(string $id): ?int

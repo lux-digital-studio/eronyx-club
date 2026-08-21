@@ -31,6 +31,23 @@ ob_start();
         <?php endif; ?>
     </section>
 
+    <section class="status-card">
+        <h2>Verificación de edad / identidad</h2>
+        <?php
+        $verificationStatus = (string) (($verification['status'] ?? 'none'));
+        ?>
+        <p>
+            <span class="<?= $e(\App\Core\Layout::statusBadgeClass($verificationStatus)) ?>">
+                <?= $e(\App\Core\Layout::statusLabel($verificationStatus === 'none' ? 'none' : $verificationStatus)) ?>
+            </span>
+        </p>
+        <?php if ($verificationStatus === 'none'): ?>
+            <p class="muted">Todavía no hay verificación.</p>
+        <?php else: ?>
+            <p class="muted">Método: <?= $e(\App\Core\Layout::verificationMethodLabel((string) ($verification['method'] ?? ''))) ?></p>
+        <?php endif; ?>
+    </section>
+
     <p><a class="link-muted" href="<?= $e($accountUrl) ?>">Volver a cuenta</a></p>
 </div>
 <?php

@@ -99,6 +99,9 @@ final class Layout
             'paid' => 'Pagado',
             'completed' => 'Completado',
             'pending' => 'Pendiente',
+            'verified' => 'Verificada',
+            'expired' => 'Expirada',
+            'cancelled' => 'Cancelada',
             'fulfilled' => 'Entregado',
             'removed' => 'Eliminado',
             'none' => 'Sin solicitud',
@@ -122,6 +125,9 @@ final class Layout
             'banned' => 'badge badge-removed',
             'paid' => 'badge badge-paid',
             'completed' => 'badge badge-completed',
+            'expired' => 'badge badge-removed',
+            'cancelled' => 'badge badge-draft',
+            'verified' => 'badge badge-published',
             'fulfilled' => 'badge badge-fulfilled',
             'removed' => 'badge badge-removed',
             default => 'badge',
@@ -185,6 +191,10 @@ final class Layout
             'user_reactivated' => 'Usuario reactivado',
             'email_verification_sent' => 'Verificación de email enviada',
             'email_verified' => 'Email verificado',
+            'age_verification_started' => 'Verificación de edad iniciada',
+            'age_verification_verified' => 'Verificación de edad confirmada',
+            'age_verification_rejected' => 'Verificación de edad rechazada',
+            'age_verification_expired' => 'Verificación de edad expirada',
             default => $event,
         };
     }
@@ -204,5 +214,15 @@ final class Layout
         }
 
         return intdiv($kilobytes, 1024) . ' MB';
+    }
+
+    public static function verificationMethodLabel(string $method): string
+    {
+        return match ($method) {
+            'self_declaration' => 'Declaración',
+            'manual_review' => 'Revisión manual',
+            'provider' => 'Proveedor',
+            default => $method,
+        };
     }
 }

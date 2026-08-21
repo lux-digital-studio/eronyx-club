@@ -17,12 +17,14 @@ final class CreatorApplicationService
     private CreatorApplicationRepository $applications;
     private NotificationService $notifications;
     private TransactionalMailService $mail;
+    private AgeVerificationService $verification;
 
     public function __construct(
         ?\PDO $pdo = null,
         ?CreatorApplicationRepository $applications = null,
         ?NotificationService $notifications = null,
-        ?TransactionalMailService $mail = null
+        ?TransactionalMailService $mail = null,
+        ?AgeVerificationService $verification = null
     ) {
         $this->pdo = $pdo ?? (new Database())->connection();
         $this->applications = $applications ?? new CreatorApplicationRepository($this->pdo);
@@ -31,6 +33,7 @@ final class CreatorApplicationService
             new UserRepository($this->pdo)
         );
         $this->mail = $mail ?? new TransactionalMailService(null, null, new UserRepository($this->pdo), $this->pdo);
+        $this->verification = $verification ?? new AgeVerificationService($this->pdo);
     }
 
     /** @return array<string, mixed>|null */
@@ -82,9 +85,7 @@ final class CreatorApplicationService
                 }
             }
 
-            if (!$this->applications->hasPendingSelfDeclaration($userId)) {
-                $this->applications->createPendingAgeVerification($userId);
-            }
+            $this->verification->startVerification($userId, $userId);
 
             $this->pdo->commit();
         } catch (Throwable $exception) {
@@ -118,6 +119,12 @@ final class CreatorApplicationService
             return false;
         }
 
+        $targetUserId = (int) $application['user_id'];
+
+        if ($approve && $this->verification->requiresVerification() && !$this->verification->hasValidVerification($targetUserId)) {
+            throw new RuntimeException('verification_required');
+        }
+
         try {
             $this->pdo->beginTransaction();
 
@@ -132,10 +139,16 @@ final class CreatorApplicationService
             }
 
             if ($approve) {
-                $this->applications->verifyPendingAgeDeclaration((int) $application['user_id']);
-                $this->applications->assignCreatorRole((int) $application['user_id']);
+                if (
+                    !$this->verification->requiresVerification()
+                    && (string) $this->verification->config()['mode'] === 'self_declaration'
+                ) {
+                    $this->applications->verifyPendingAgeDeclaration($targetUserId);
+                }
+
+                $this->applications->assignCreatorRole($targetUserId);
             } else {
-                $this->applications->rejectPendingAgeDeclaration((int) $application['user_id']);
+                $this->verification->cancelPending($targetUserId, 'policy_restriction');
             }
 
             $recipientUserId = (int) $application['user_id'];

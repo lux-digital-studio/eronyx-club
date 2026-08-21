@@ -200,6 +200,14 @@ return static function (Router $router): void {
         AuthMiddleware::class,
         [RoleMiddleware::class, [['moderator']]],
     ]);
+    $router->post('/moderator/creator-applications/{id}/verify-age', [ModeratorCreatorApplicationController::class, 'verifyAge'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['moderator']]],
+    ]);
+    $router->post('/moderator/creator-applications/{id}/reject-age', [ModeratorCreatorApplicationController::class, 'rejectAge'], [
+        AuthMiddleware::class,
+        [RoleMiddleware::class, [['moderator']]],
+    ]);
     $router->get('/moderator/listings/{id}', [ModeratorListingController::class, 'show'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['moderator']]],
