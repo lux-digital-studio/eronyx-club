@@ -11,6 +11,7 @@ use App\Core\Session;
 use App\Repositories\ConversationRepository;
 use App\Repositories\NotificationRepository;
 use App\Repositories\UserRepository;
+use App\Services\UserConsentService;
 
 final class AccountController
 {
@@ -29,6 +30,7 @@ final class AccountController
         $unreadCount = 0;
         $notificationUnreadCount = 0;
         $emailVerified = false;
+        $consents = [];
         $userId = $auth->id();
 
         if ($userId !== null) {
@@ -36,6 +38,7 @@ final class AccountController
             $unreadCount = (new ConversationRepository($pdo))->unreadConversationCount($userId);
             $notificationUnreadCount = (new NotificationRepository($pdo))->countUnreadForUser($userId);
             $emailVerified = (new UserRepository($pdo))->isEmailVerified($userId);
+            $consents = (new UserConsentService($pdo))->findForUser($userId);
         }
 
         return $this->view('account/index.php', [
@@ -50,8 +53,42 @@ final class AccountController
             'profileUrl' => $this->url('/account/profile'),
             'securityUrl' => $this->url('/account/security/password'),
             'creatorStatusUrl' => $this->url('/account/creator/status'),
+            'legalUrl' => $this->url('/account/legal'),
             'verifyEmailUrl' => $this->url('/account/verify-email'),
             'emailVerified' => $emailVerified,
+            'consents' => $consents,
+        ]);
+    }
+
+    public function legal(): string
+    {
+        $auth = new Auth($this->session);
+        $userId = (int) $auth->id();
+        $pdo = (new Database())->connection();
+        $service = new UserConsentService($pdo);
+
+        return $this->view('account/legal/index.php', [
+            'consents' => $service->findForUser($userId),
+            'current' => [
+                'terms' => $service->hasAccepted($userId, 'terms'),
+                'privacy' => $service->hasAccepted($userId, 'privacy'),
+                'creator_rules' => $service->hasAccepted($userId, 'creator_rules'),
+                'content_policy' => $service->hasAccepted($userId, 'content_policy'),
+                'age_declaration' => $service->hasAccepted($userId, 'age_declaration'),
+            ],
+            'versions' => [
+                'terms' => $service->version('terms'),
+                'privacy' => $service->version('privacy'),
+                'creator_rules' => $service->version('creator_rules'),
+                'content_policy' => $service->version('content_policy'),
+                'age_declaration' => $service->version('age_declaration'),
+            ],
+            'accountUrl' => $this->url('/account'),
+            'termsUrl' => $this->url('/terms'),
+            'privacyUrl' => $this->url('/privacy'),
+            'creatorRulesUrl' => $this->url('/creator-rules'),
+            'contentPolicyUrl' => $this->url('/content-policy'),
+            'agePolicyUrl' => $this->url('/age-policy'),
         ]);
     }
 

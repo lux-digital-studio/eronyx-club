@@ -25,12 +25,17 @@ ob_start();
 
             <label class="checkbox-row">
                 <input type="checkbox" name="adult_confirmation" value="1">
-                <span>Declaro que soy mayor de 18 años. Esta casilla es una declaración legal, no una verificación KYC.</span>
+                <span>Declaro que soy mayor de 18 años según la <a href="<?= $e(\App\Core\Layout::url('/age-policy')) ?>">política de mayoría de edad</a>. Esta casilla es una declaración legal, no una verificación KYC.</span>
             </label>
 
             <label class="checkbox-row">
-                <input type="checkbox" name="terms_confirmation" value="1">
-                <span>Acepto solicitar la revisión para acceso creator.</span>
+                <input type="checkbox" name="accept_creator_rules" value="1">
+                <span>Acepto las <a href="<?= $e(\App\Core\Layout::url('/creator-rules')) ?>">reglas para creators</a>.</span>
+            </label>
+
+            <label class="checkbox-row">
+                <input type="checkbox" name="accept_content_policy" value="1">
+                <span>Acepto la <a href="<?= $e(\App\Core\Layout::url('/content-policy')) ?>">política de contenido</a>.</span>
             </label>
 
             <button class="btn btn-primary" type="submit">Enviar solicitud</button>

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Controllers\HomeController;
 use App\Controllers\AuthController;
+use App\Controllers\LegalController;
 use App\Controllers\AccountController;
 use App\Controllers\AccountSecurityController;
 use App\Controllers\AdminAuditController;
@@ -42,10 +43,19 @@ use App\Middleware\VerifiedEmailMiddleware;
 
 return static function (Router $router): void {
     $router->get('/', [HomeController::class, 'index']);
+    $router->get('/legal', [LegalController::class, 'index']);
+    $router->get('/terms', [LegalController::class, 'terms']);
+    $router->get('/privacy', [LegalController::class, 'privacy']);
+    $router->get('/cookies', [LegalController::class, 'cookies']);
+    $router->get('/content-policy', [LegalController::class, 'contentPolicy']);
+    $router->get('/creator-rules', [LegalController::class, 'creatorRules']);
+    $router->get('/age-policy', [LegalController::class, 'agePolicy']);
+    $router->get('/reporting-policy', [LegalController::class, 'reportingPolicy']);
     $router->get('/marketplace', [MarketplaceController::class, 'index']);
     $router->get('/marketplace/{slug}', [MarketplaceController::class, 'show']);
     $router->get('/media/{id}', [MediaController::class, 'show']);
     $router->get('/account', [AccountController::class, 'index'], [AuthMiddleware::class]);
+    $router->get('/account/legal', [AccountController::class, 'legal'], [AuthMiddleware::class]);
     $router->get('/account/verify-email', [EmailVerificationController::class, 'status'], [AuthMiddleware::class]);
     $router->post('/account/verify-email/resend', [EmailVerificationController::class, 'resend'], [AuthMiddleware::class]);
     $router->get('/account/security/password', [AccountSecurityController::class, 'passwordForm'], [AuthMiddleware::class]);

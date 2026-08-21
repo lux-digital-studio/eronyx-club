@@ -15,8 +15,12 @@ final class CreatorApplicationValidator
             $errors['adult_confirmation'] = 'Debes declarar que eres mayor de 18 años.';
         }
 
-        if (!$this->accepted($input['terms_confirmation'] ?? null)) {
-            $errors['terms_confirmation'] = 'Debes aceptar las condiciones para solicitar acceso creator.';
+        if (!$this->accepted($input['accept_creator_rules'] ?? null)) {
+            $errors['accept_creator_rules'] = 'Debes aceptar las reglas para creators.';
+        }
+
+        if (!$this->accepted($input['accept_content_policy'] ?? null)) {
+            $errors['accept_content_policy'] = 'Debes aceptar la política de contenido.';
         }
 
         return [

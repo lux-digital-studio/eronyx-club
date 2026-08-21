@@ -11,10 +11,15 @@ $year = date('Y');
         <p class="footer-brand">ERONYX</p>
         <nav class="footer-nav" aria-label="Pie de página">
             <a href="<?= $e($url('/marketplace')) ?>">Marketplace</a>
+            <a href="<?= $e($url('/terms')) ?>">Términos</a>
+            <a href="<?= $e($url('/privacy')) ?>">Privacidad</a>
+            <a href="<?= $e($url('/cookies')) ?>">Cookies</a>
+            <a href="<?= $e($url('/content-policy')) ?>">Política de contenido</a>
+            <a href="<?= $e($url('/creator-rules')) ?>">Reglas para creators</a>
+            <a href="<?= $e($url('/age-policy')) ?>">Mayoría de edad</a>
+            <a href="<?= $e($url('/reporting-policy')) ?>">Reportar contenido</a>
         </nav>
         <div class="footer-meta">
-            <span>Términos</span>
-            <span>Privacidad</span>
             <p class="footer-copy">© <?= $e($year) ?> ERONYX</p>
         </div>
     </div>

@@ -34,6 +34,22 @@ ob_start();
             </dl>
         </section>
         <section class="admin-panel">
+            <h2>Consentimientos</h2>
+            <?php if (($user['consents'] ?? []) === []): ?>
+                <p class="muted">Sin consentimientos registrados.</p>
+            <?php else: ?>
+                <ul class="legal-consent-list">
+                    <?php foreach ($user['consents'] as $consent): ?>
+                        <li>
+                            <?= $e($consent['consent_type']) ?>
+                            · <?= $e($consent['document_version']) ?>
+                            · <?= $e($consent['accepted_at']) ?>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        </section>
+        <section class="admin-panel">
             <h2>Actividad</h2>
             <dl class="admin-dl">
                 <dt>Listings</dt><dd><?= $e((string) ($user['counts']['listings'] ?? 0)) ?></dd>

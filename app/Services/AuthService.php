@@ -51,6 +51,7 @@ final class AuthService
             }
 
             $this->users->assignRole($userId, $buyerRoleId);
+            (new UserConsentService($this->pdo))->recordRegisterConsents($userId);
 
             $this->pdo->commit();
         } catch (Throwable $exception) {

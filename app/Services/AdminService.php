@@ -77,6 +77,7 @@ final class AdminService
 
         $user['counts'] = $this->admin->userActivityCounts($userId);
         $user['creator_profile'] = $this->admin->findCreatorDetail($userId);
+        $user['consents'] = (new UserConsentService($this->pdo))->findForUser($userId);
 
         return $user;
     }

@@ -63,6 +63,18 @@ final class RegisterValidator
             }
         }
 
+        if (!$this->accepted($input['accept_terms'] ?? null)) {
+            $errors['accept_terms'] = 'Debes aceptar los términos de uso.';
+        }
+
+        if (!$this->accepted($input['accept_privacy'] ?? null)) {
+            $errors['accept_privacy'] = 'Debes aceptar la política de privacidad.';
+        }
+
+        if (!$this->accepted($input['accept_age'] ?? null)) {
+            $errors['accept_age'] = 'Debes declarar que eres mayor de 18 años.';
+        }
+
         return [
             'valid' => $errors === [],
             'data' => [
@@ -78,5 +90,14 @@ final class RegisterValidator
     private function length(string $value): int
     {
         return function_exists('mb_strlen') ? mb_strlen($value, 'UTF-8') : strlen($value);
+    }
+
+    private function accepted(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        return in_array(strtolower((string) $value), ['1', 'on', 'true'], true);
     }
 }

@@ -53,7 +53,29 @@ ob_start();
             <h2 class="action-card-title">Estado creator</h2>
             <p class="action-card-copy">Solicitud y acceso a la zona creator.</p>
         </a>
+        <a class="action-card" href="<?= $e($legalUrl) ?>">
+            <h2 class="action-card-title">Legal y consentimientos</h2>
+            <p class="action-card-copy">Versiones aceptadas de términos, privacidad y reglas.</p>
+        </a>
     </div>
+
+    <section class="form-section">
+        <h2>Legal y consentimientos</h2>
+        <?php if (($consents ?? []) === []): ?>
+            <p class="muted">No hay consentimientos registrados.</p>
+        <?php else: ?>
+            <ul class="legal-consent-list">
+                <?php foreach ($consents as $consent): ?>
+                    <li>
+                        <?= $e($consent['consent_type']) ?>
+                        · versión <?= $e($consent['document_version']) ?>
+                        · <?= $e($consent['accepted_at']) ?>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php endif; ?>
+        <p><a href="<?= $e($legalUrl) ?>">Ver detalle legal</a></p>
+    </section>
 
     <form method="post" action="<?= $e($logoutUrl) ?>">
         <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">

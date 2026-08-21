@@ -86,6 +86,7 @@ final class CreatorApplicationService
             }
 
             $this->verification->startVerification($userId, $userId);
+            (new UserConsentService($this->pdo))->recordCreatorConsents($userId);
 
             $this->pdo->commit();
         } catch (Throwable $exception) {

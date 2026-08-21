@@ -368,6 +368,9 @@ try {
             'email' => "ru{$suffix}@eronyx.test",
             'password' => $password,
             'password_confirmation' => $password,
+            'accept_terms' => '1',
+            'accept_privacy' => '1',
+            'accept_age' => '1',
         ],
     ]);
     $sidRegAfter = sessionCookie($regPost['headers']) ?? $sidRegBefore;

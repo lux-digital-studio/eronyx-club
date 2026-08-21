@@ -1935,6 +1935,43 @@ legend {
     }
 }
 
+.legal-doc article {
+    max-width: 46rem;
+}
+
+.legal-doc h2 {
+    margin-top: var(--space-6);
+}
+
+.legal-draft {
+    margin: 0 0 var(--space-4);
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+}
+
+.legal-nav,
+.legal-hub,
+.legal-consent-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-6);
+    padding: 0;
+    list-style: none;
+}
+
+.legal-hub {
+    display: grid;
+}
+
+.legal-consent-list {
+    display: grid;
+    gap: var(--space-2);
+}
+
 @media (min-width: 1280px) {
     .filter-grid {
         grid-template-columns: 2fr repeat(4, minmax(0, 1fr));
