@@ -8,6 +8,7 @@
         }
     },
     "require": {
-        "php": ">=8.2"
+        "php": ">=8.2",
+        "phpmailer/phpmailer": "^7.1"
     }
 }

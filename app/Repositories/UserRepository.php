@@ -171,6 +171,35 @@ final class UserRepository
         ]);
     }
 
+    /**
+     * @return array{id: int, email: string, status: string, deleted_at: string|null, display_name: string, username: string}|null
+     */
+    public function findMailRecipient(int $userId): ?array
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT u.id, u.email, u.status, u.deleted_at, p.display_name, p.username
+             FROM users u
+             LEFT JOIN profiles p ON p.user_id = u.id AND p.deleted_at IS NULL
+             WHERE u.id = :id
+             LIMIT 1'
+        );
+        $statement->execute(['id' => $userId]);
+        $user = $statement->fetch();
+
+        if (!is_array($user)) {
+            return null;
+        }
+
+        return [
+            'id' => (int) $user['id'],
+            'email' => (string) $user['email'],
+            'status' => (string) $user['status'],
+            'deleted_at' => is_string($user['deleted_at']) ? $user['deleted_at'] : null,
+            'display_name' => is_string($user['display_name'] ?? null) ? $user['display_name'] : '',
+            'username' => is_string($user['username'] ?? null) ? $user['username'] : '',
+        ];
+    }
+
     /** @return array{id: int, status: string, deleted_at: string|null}|null */
     public function findExistingById(int $userId): ?array
     {

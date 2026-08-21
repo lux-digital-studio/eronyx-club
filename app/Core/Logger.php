@@ -25,6 +25,10 @@ final class Logger
         'iban',
         'secret',
         'token',
+        'mail_password',
+        'smtp_password',
+        'reset_token',
+        'raw_token',
     ];
 
     public static function error(string $message, array $context = []): void

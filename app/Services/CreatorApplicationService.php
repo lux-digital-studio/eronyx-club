@@ -16,11 +16,13 @@ final class CreatorApplicationService
     private \PDO $pdo;
     private CreatorApplicationRepository $applications;
     private NotificationService $notifications;
+    private TransactionalMailService $mail;
 
     public function __construct(
         ?\PDO $pdo = null,
         ?CreatorApplicationRepository $applications = null,
-        ?NotificationService $notifications = null
+        ?NotificationService $notifications = null,
+        ?TransactionalMailService $mail = null
     ) {
         $this->pdo = $pdo ?? (new Database())->connection();
         $this->applications = $applications ?? new CreatorApplicationRepository($this->pdo);
@@ -28,6 +30,7 @@ final class CreatorApplicationService
             new NotificationRepository($this->pdo),
             new UserRepository($this->pdo)
         );
+        $this->mail = $mail ?? new TransactionalMailService(null, null, new UserRepository($this->pdo), $this->pdo);
     }
 
     /** @return array<string, mixed>|null */
@@ -166,6 +169,12 @@ final class CreatorApplicationService
             }
 
             $this->pdo->commit();
+
+            if ($approve) {
+                $this->mail->sendCreatorApproved($recipientUserId);
+            } else {
+                $this->mail->sendCreatorRejected($recipientUserId);
+            }
 
             return true;
         } catch (Throwable $exception) {

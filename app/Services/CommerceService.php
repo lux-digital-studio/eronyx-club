@@ -23,6 +23,7 @@ final class CommerceService
     private ListingRepository $listings;
     private PrivateContentAccessService $privateAccess;
     private NotificationService $notifications;
+    private TransactionalMailService $mail;
 
     public function __construct(
         ?\PDO $pdo = null,
@@ -31,7 +32,8 @@ final class CommerceService
         ?PaymentRepository $payments = null,
         ?ListingRepository $listings = null,
         ?PrivateContentAccessService $privateAccess = null,
-        ?NotificationService $notifications = null
+        ?NotificationService $notifications = null,
+        ?TransactionalMailService $mail = null
     ) {
         $this->pdo = $pdo ?? (new Database())->connection();
         $this->orders = $orders ?? new OrderRepository($this->pdo);
@@ -43,6 +45,7 @@ final class CommerceService
             new NotificationRepository($this->pdo),
             new UserRepository($this->pdo)
         );
+        $this->mail = $mail ?? new TransactionalMailService(null, null, new UserRepository($this->pdo), $this->pdo);
     }
 
     /** @return array<string, mixed> */
@@ -166,6 +169,15 @@ final class CommerceService
             }
 
             $this->pdo->commit();
+
+            $orderForMail = $this->orders->findById($orderId) ?? $order;
+            $itemsForMail = $this->items->findByOrder($orderId);
+
+            if ($allFulfilled) {
+                $this->mail->sendOrderCompleted($orderForMail, $itemsForMail);
+            } else {
+                $this->mail->sendOrderPaid($orderForMail, $itemsForMail);
+            }
 
             return true;
         } catch (Throwable $exception) {

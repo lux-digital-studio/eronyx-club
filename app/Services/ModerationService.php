@@ -21,6 +21,7 @@ final class ModerationService
     private const RESTORABLE_LISTING_STATUSES = ['published', 'pending_review'];
 
     private NotificationService $notifications;
+    private TransactionalMailService $mail;
 
     public function __construct(
         private readonly ReportRepository $reports,
@@ -31,11 +32,18 @@ final class ModerationService
         private readonly ProfileRepository $profiles,
         private readonly MessageRepository $messages,
         private readonly CreatorApplicationRepository $creatorProfiles,
-        ?NotificationService $notifications = null
+        ?NotificationService $notifications = null,
+        ?TransactionalMailService $mail = null
     ) {
         $this->notifications = $notifications ?? new NotificationService(
             new NotificationRepository($this->reports->connection()),
             $this->users
+        );
+        $this->mail = $mail ?? new TransactionalMailService(
+            null,
+            null,
+            $this->users,
+            $this->reports->connection()
         );
     }
 
@@ -273,6 +281,7 @@ final class ModerationService
                 $actionId
             );
             $pdo->commit();
+            $this->mail->sendListingSuspended($listing);
 
             return 'updated';
         } catch (Throwable $exception) {
@@ -337,6 +346,7 @@ final class ModerationService
                 $actionId
             );
             $pdo->commit();
+            $this->mail->sendListingRestored($listing);
 
             return 'updated';
         } catch (Throwable $exception) {

@@ -22,6 +22,7 @@ final class ListingService
     private CategoryRepository $categories;
     private MediaRepository $media;
     private NotificationService $notifications;
+    private TransactionalMailService $mail;
 
     public function __construct(
         private readonly Auth $auth,
@@ -29,7 +30,8 @@ final class ListingService
         ?ListingRepository $listings = null,
         ?CategoryRepository $categories = null,
         ?MediaRepository $media = null,
-        ?NotificationService $notifications = null
+        ?NotificationService $notifications = null,
+        ?TransactionalMailService $mail = null
     ) {
         $this->pdo = $pdo ?? (new Database())->connection();
         $this->listings = $listings ?? new ListingRepository($this->pdo);
@@ -39,6 +41,7 @@ final class ListingService
             new NotificationRepository($this->pdo),
             new UserRepository($this->pdo)
         );
+        $this->mail = $mail ?? new TransactionalMailService(null, null, new UserRepository($this->pdo), $this->pdo);
     }
 
     /** @param array{title: string, description: string|null, listing_type: string, price: string, currency: string, visibility: string, category_ids: list<int>} $data */
@@ -156,6 +159,7 @@ final class ListingService
                 'Tu publicación ya está disponible según su visibilidad.',
                 'approved'
             );
+            $this->mail->sendListingApproved($listing);
         }
 
         return $updated;
@@ -174,6 +178,7 @@ final class ListingService
                 'Revisa el contenido y vuelve a enviarla cuando esté lista.',
                 'rejected'
             );
+            $this->mail->sendListingRejected($listing);
         }
 
         return $updated;

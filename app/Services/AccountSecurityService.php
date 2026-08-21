@@ -24,13 +24,15 @@ final class AccountSecurityService
     private AuditLogRepository $audit;
     private ChangePasswordValidator $changeValidator;
     private ResetPasswordValidator $resetValidator;
+    private TransactionalMailService $mail;
 
     public function __construct(
         private readonly Session $session,
         ?\PDO $pdo = null,
         ?UserRepository $users = null,
         ?PasswordResetTokenRepository $tokens = null,
-        ?AuditLogRepository $audit = null
+        ?AuditLogRepository $audit = null,
+        ?TransactionalMailService $mail = null
     ) {
         $this->pdo = $pdo ?? (new Database())->connection();
         $this->users = $users ?? new UserRepository($this->pdo);
@@ -38,6 +40,7 @@ final class AccountSecurityService
         $this->audit = $audit ?? new AuditLogRepository($this->pdo);
         $this->changeValidator = new ChangePasswordValidator();
         $this->resetValidator = new ResetPasswordValidator();
+        $this->mail = $mail ?? new TransactionalMailService(null, null, $this->users, $this->pdo);
     }
 
     /**
@@ -85,6 +88,7 @@ final class AccountSecurityService
         }
 
         $this->refreshCurrentSession($userId, $version);
+        $this->mail->sendPasswordChanged($userId);
 
         return ['ok' => true, 'errors' => []];
     }
@@ -113,12 +117,13 @@ final class AccountSecurityService
         $rawToken = bin2hex(random_bytes(32));
         $tokenHash = $this->hashValue($rawToken);
         $expiresAt = date('Y-m-d H:i:s', time() + PasswordResetTokenRepository::TTL_SECONDS);
+        $tokenId = 0;
 
         try {
             $this->pdo->beginTransaction();
             $this->tokens->cleanupExpiredForUser($userId);
             $this->tokens->invalidateActiveForUser($userId);
-            $this->tokens->create($userId, $tokenHash, $expiresAt, $ipHash);
+            $tokenId = $this->tokens->create($userId, $tokenHash, $expiresAt, $ipHash);
             $this->audit->record($userId, 'password_reset_requested', 'user', $userId);
             $this->pdo->commit();
         } catch (Throwable $exception) {
@@ -129,9 +134,21 @@ final class AccountSecurityService
             throw $exception;
         }
 
+        $resetUrl = $this->resetUrl($rawToken);
+        $delivered = $this->mail->sendPasswordReset($userId, $resetUrl);
+
+        if (!$delivered) {
+            $this->tokens->invalidateById($tokenId, $userId);
+
+            return [
+                'message' => self::GENERIC_FORGOT_MESSAGE,
+                'reset_url' => null,
+            ];
+        }
+
         return [
             'message' => self::GENERIC_FORGOT_MESSAGE,
-            'reset_url' => $exposeResetUrl ? $this->resetUrl($rawToken) : null,
+            'reset_url' => $exposeResetUrl ? $resetUrl : null,
         ];
     }
 
@@ -189,6 +206,7 @@ final class AccountSecurityService
             $this->tokens->cleanupExpiredForUser($token['user_id']);
             $this->users->incrementSessionVersion($token['user_id']);
             $this->audit->record($token['user_id'], 'password_reset_completed', 'user', $token['user_id']);
+            $resetUserId = $token['user_id'];
             $this->pdo->commit();
         } catch (Throwable $exception) {
             if ($this->pdo->inTransaction()) {
@@ -197,6 +215,8 @@ final class AccountSecurityService
 
             throw $exception;
         }
+
+        $this->mail->sendPasswordResetCompleted($resetUserId);
 
         return ['ok' => true, 'errors' => [], 'consumed' => true];
     }

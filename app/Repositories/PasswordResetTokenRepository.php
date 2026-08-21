@@ -83,6 +83,23 @@ final class PasswordResetTokenRepository
         return is_array($row) ? $this->normalize($row) : null;
     }
 
+    public function invalidateById(int $id, int $userId): bool
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE password_reset_tokens
+             SET used_at = CURRENT_TIMESTAMP
+             WHERE id = :id
+                AND user_id = :user_id
+                AND used_at IS NULL'
+        );
+        $statement->execute([
+            'id' => $id,
+            'user_id' => $userId,
+        ]);
+
+        return $statement->rowCount() === 1;
+    }
+
     public function consume(int $id, int $userId): bool
     {
         $statement = $this->pdo->prepare(
