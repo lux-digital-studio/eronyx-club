@@ -152,7 +152,7 @@ function createUser(PDO $pdo, string $email, string $username, string $display, 
     global $createdUserIds;
     $hash = password_hash($password, PASSWORD_DEFAULT);
     $statement = $pdo->prepare(
-        "INSERT INTO users (email, password_hash, status) VALUES (:email, :password_hash, 'active')"
+        "INSERT INTO users (email, password_hash, status, email_verified_at) VALUES (:email, :password_hash, 'active', CURRENT_TIMESTAMP)"
     );
     $statement->execute(['email' => $email, 'password_hash' => $hash]);
     $userId = (int) $pdo->lastInsertId();
@@ -690,6 +690,7 @@ foreach (glob($root . '/storage/cache/rate-limits/*.json') ?: [] as $file) {
 try {
     $ids = implode(',', array_map('intval', $createdUserIds)) ?: '0';
     $pdo->exec("DELETE FROM password_reset_tokens WHERE user_id IN ({$ids})");
+    $pdo->exec("DELETE FROM email_verification_tokens WHERE user_id IN ({$ids})");
     $pdo->exec("DELETE FROM audit_logs WHERE actor_user_id IN ({$ids}) OR entity_id IN ({$ids})");
     $pdo->exec("DELETE FROM notifications WHERE user_id IN ({$ids})");
     $pdo->exec("DELETE FROM creator_profiles WHERE user_id IN ({$ids})");
@@ -705,7 +706,7 @@ $counts = [];
 foreach (
     [
         'users', 'profiles', 'user_roles', 'creator_profiles', 'roles', 'categories',
-        'password_reset_tokens', 'notifications', 'audit_logs', 'listings', 'orders',
+        'password_reset_tokens', 'email_verification_tokens', 'notifications', 'audit_logs', 'listings', 'orders',
         'favorites', 'messages', 'reports',
     ] as $table
 ) {

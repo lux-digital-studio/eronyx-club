@@ -17,7 +17,7 @@ final class UserRepository
     public function findByEmail(string $email): ?array
     {
         $statement = $this->pdo->prepare(
-            'SELECT id, email, password_hash, status, session_version, deleted_at
+            'SELECT id, email, password_hash, status, session_version, email_verified_at, deleted_at
              FROM users
              WHERE email = :email AND deleted_at IS NULL
              LIMIT 1'
@@ -89,11 +89,11 @@ final class UserRepository
         return true;
     }
 
-    /** @return array{id: int, email: string, password_hash: string, status: string, session_version: int, deleted_at: string|null}|null */
+    /** @return array{id: int, email: string, password_hash: string, status: string, session_version: int, email_verified_at: string|null, deleted_at: string|null}|null */
     public function findAuthById(int $userId): ?array
     {
         $statement = $this->pdo->prepare(
-            'SELECT id, email, password_hash, status, session_version, deleted_at
+            'SELECT id, email, password_hash, status, session_version, email_verified_at, deleted_at
              FROM users
              WHERE id = :id
              LIMIT 1'
@@ -111,8 +111,38 @@ final class UserRepository
             'password_hash' => (string) $user['password_hash'],
             'status' => (string) $user['status'],
             'session_version' => max(1, (int) $user['session_version']),
+            'email_verified_at' => is_string($user['email_verified_at']) ? $user['email_verified_at'] : null,
             'deleted_at' => is_string($user['deleted_at']) ? $user['deleted_at'] : null,
         ];
+    }
+
+    public function isEmailVerified(int $userId): bool
+    {
+        $statement = $this->pdo->prepare(
+            'SELECT email_verified_at
+             FROM users
+             WHERE id = :id
+                AND deleted_at IS NULL
+             LIMIT 1'
+        );
+        $statement->execute(['id' => $userId]);
+        $value = $statement->fetchColumn();
+
+        return is_string($value) && $value !== '';
+    }
+
+    public function markEmailVerified(int $userId): bool
+    {
+        $statement = $this->pdo->prepare(
+            'UPDATE users
+             SET email_verified_at = CURRENT_TIMESTAMP
+             WHERE id = :id
+                AND email_verified_at IS NULL
+                AND deleted_at IS NULL'
+        );
+        $statement->execute(['id' => $userId]);
+
+        return $statement->rowCount() === 1;
     }
 
     public function sessionVersion(int $userId): int

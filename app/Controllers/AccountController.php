@@ -10,6 +10,7 @@ use App\Core\Database;
 use App\Core\Session;
 use App\Repositories\ConversationRepository;
 use App\Repositories\NotificationRepository;
+use App\Repositories\UserRepository;
 
 final class AccountController
 {
@@ -27,12 +28,14 @@ final class AccountController
         $auth = new Auth($this->session);
         $unreadCount = 0;
         $notificationUnreadCount = 0;
+        $emailVerified = false;
         $userId = $auth->id();
 
         if ($userId !== null) {
             $pdo = (new Database())->connection();
             $unreadCount = (new ConversationRepository($pdo))->unreadConversationCount($userId);
             $notificationUnreadCount = (new NotificationRepository($pdo))->countUnreadForUser($userId);
+            $emailVerified = (new UserRepository($pdo))->isEmailVerified($userId);
         }
 
         return $this->view('account/index.php', [
@@ -47,6 +50,8 @@ final class AccountController
             'profileUrl' => $this->url('/account/profile'),
             'securityUrl' => $this->url('/account/security/password'),
             'creatorStatusUrl' => $this->url('/account/creator/status'),
+            'verifyEmailUrl' => $this->url('/account/verify-email'),
+            'emailVerified' => $emailVerified,
         ]);
     }
 

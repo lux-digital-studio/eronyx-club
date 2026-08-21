@@ -81,9 +81,9 @@ final class AuthController
         }
 
         try {
-            $this->auth->register($validation['data']);
+            $this->auth->register($validation['data'], $this->request->clientIp());
             $this->csrf->regenerate();
-            $this->response->redirect($this->url('/'));
+            $this->response->redirect($this->url('/account/verify-email'));
         } catch (Throwable) {
             return $this->view('auth/register.php', [
                 'csrf' => $this->csrf->token(),

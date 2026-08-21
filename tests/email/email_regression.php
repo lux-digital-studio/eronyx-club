@@ -176,7 +176,7 @@ function createUser(PDO $pdo, string $email, string $username, string $display, 
     global $createdUserIds;
     $hash = password_hash($password, PASSWORD_DEFAULT);
     $statement = $pdo->prepare(
-        "INSERT INTO users (email, password_hash, status) VALUES (:email, :password_hash, 'active')"
+        "INSERT INTO users (email, password_hash, status, email_verified_at) VALUES (:email, :password_hash, 'active', CURRENT_TIMESTAMP)"
     );
     $statement->execute(['email' => $email, 'password_hash' => $hash]);
     $userId = (int) $pdo->lastInsertId();
@@ -857,6 +857,7 @@ try {
     $pdo->exec("DELETE FROM audit_logs WHERE actor_user_id IN ({$ids}) OR entity_id IN ({$listingIds}) OR entity_id IN ({$ids})");
     $pdo->exec("DELETE FROM moderation_actions WHERE moderator_user_id IN ({$ids}) OR target_id IN ({$listingIds}) OR target_id IN ({$ids})");
     $pdo->exec("DELETE FROM password_reset_tokens WHERE user_id IN ({$ids})");
+    $pdo->exec("DELETE FROM email_verification_tokens WHERE user_id IN ({$ids})");
     $pdo->exec("DELETE FROM private_content_access WHERE user_id IN ({$ids}) OR listing_id IN ({$listingIds})");
     $pdo->exec("DELETE FROM payments WHERE order_id IN ({$orderList})");
     $pdo->exec("DELETE FROM order_items WHERE order_id IN ({$orderList})");
@@ -880,6 +881,7 @@ foreach (
         'listings', 'listing_categories', 'media_files', 'listing_media', 'private_content_access',
         'orders', 'order_items', 'payments', 'favorites', 'conversations', 'conversation_participants',
         'messages', 'reports', 'moderation_actions', 'audit_logs', 'notifications', 'password_reset_tokens',
+        'email_verification_tokens',
     ] as $table
 ) {
     $counts[$table] = (int) $pdo->query('SELECT COUNT(*) FROM ' . $table)->fetchColumn();

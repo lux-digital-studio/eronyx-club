@@ -178,7 +178,7 @@ function createUser(PDO $pdo, string $email, string $username, string $display, 
     global $createdUserIds;
     $hash = password_hash($password, PASSWORD_DEFAULT);
     $statement = $pdo->prepare(
-        "INSERT INTO users (email, password_hash, status) VALUES (:email, :password_hash, 'active')"
+        "INSERT INTO users (email, password_hash, status, email_verified_at) VALUES (:email, :password_hash, 'active', CURRENT_TIMESTAMP)"
     );
     $statement->execute(['email' => $email, 'password_hash' => $hash]);
     $userId = (int) $pdo->lastInsertId();
@@ -804,6 +804,7 @@ try {
     $pdo->exec("DELETE FROM listings WHERE id IN ({$listingIds}) OR owner_user_id IN ({$ids})");
     $pdo->exec("DELETE FROM age_verifications WHERE user_id IN ({$ids})");
     $pdo->exec("DELETE FROM creator_profiles WHERE user_id IN ({$ids})");
+    $pdo->exec("DELETE FROM email_verification_tokens WHERE user_id IN ({$ids})");
     $pdo->exec("DELETE FROM user_roles WHERE user_id IN ({$ids})");
     $pdo->exec("DELETE FROM profiles WHERE user_id IN ({$ids})");
     $pdo->exec("DELETE FROM users WHERE id IN ({$ids})");

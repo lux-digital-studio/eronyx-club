@@ -145,7 +145,7 @@ final class Response
 
     public function isSensitivePath(string $path): bool
     {
-        $prefixes = ['/account', '/moderator', '/admin', '/checkout', '/reports', '/login', '/register', '/forgot-password', '/reset-password'];
+        $prefixes = ['/account', '/moderator', '/admin', '/checkout', '/reports', '/login', '/register', '/forgot-password', '/reset-password', '/verify-email'];
 
         foreach ($prefixes as $prefix) {
             if ($path === $prefix || str_starts_with($path, $prefix . '/')) {

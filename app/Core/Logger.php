@@ -29,6 +29,7 @@ final class Logger
         'smtp_password',
         'reset_token',
         'raw_token',
+        'verification_token',
     ];
 
     public static function error(string $message, array $context = []): void

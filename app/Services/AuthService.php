@@ -16,18 +16,21 @@ final class AuthService
 
     private \PDO $pdo;
     private UserRepository $users;
+    private EmailVerificationService $verification;
 
     public function __construct(
         private readonly Session $session,
         ?\PDO $pdo = null,
-        ?UserRepository $users = null
+        ?UserRepository $users = null,
+        ?EmailVerificationService $verification = null
     ) {
         $this->pdo = $pdo ?? (new Database())->connection();
         $this->users = $users ?? new UserRepository($this->pdo);
+        $this->verification = $verification ?? new EmailVerificationService($this->pdo, $this->users);
     }
 
     /** @param array{email: string, username: string, display_name: string, password: string} $data */
-    public function register(array $data): int
+    public function register(array $data, string $clientIp = '0.0.0.0'): int
     {
         $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
 
@@ -59,6 +62,11 @@ final class AuthService
         }
 
         $this->loginUserId($userId, 1);
+
+        try {
+            $this->verification->issueForUser($userId, $clientIp);
+        } catch (Throwable) {
+        }
 
         return $userId;
     }

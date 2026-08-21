@@ -43,6 +43,14 @@ final class TransactionalMailService
         return $this->sendTemplate($userId, 'password-reset-completed', 'password_reset_completed', [], true);
     }
 
+    public function sendEmailVerification(int $userId, string $verificationUrl): bool
+    {
+        return $this->sendTemplate($userId, 'email-verification', 'email_verification', [
+            'verificationUrl' => $verificationUrl,
+            'expiresHours' => 24,
+        ], true);
+    }
+
     public function sendCreatorApproved(int $userId): bool
     {
         return $this->sendTemplate($userId, 'creator-application-approved', 'creator_application_approved', [

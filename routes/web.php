@@ -12,6 +12,7 @@ use App\Controllers\CreatorApplicationController;
 use App\Controllers\CreatorController;
 use App\Controllers\CreatorListingController;
 use App\Controllers\CreatorMediaController;
+use App\Controllers\EmailVerificationController;
 use App\Controllers\FavoriteController;
 use App\Controllers\MarketplaceController;
 use App\Controllers\MediaController;
@@ -31,6 +32,7 @@ use App\Middleware\ActiveCreatorMiddleware;
 use App\Middleware\AuthMiddleware;
 use App\Middleware\GuestMiddleware;
 use App\Middleware\RoleMiddleware;
+use App\Middleware\VerifiedEmailMiddleware;
 
 return static function (Router $router): void {
     $router->get('/', [HomeController::class, 'index']);
@@ -38,6 +40,8 @@ return static function (Router $router): void {
     $router->get('/marketplace/{slug}', [MarketplaceController::class, 'show']);
     $router->get('/media/{id}', [MediaController::class, 'show']);
     $router->get('/account', [AccountController::class, 'index'], [AuthMiddleware::class]);
+    $router->get('/account/verify-email', [EmailVerificationController::class, 'status'], [AuthMiddleware::class]);
+    $router->post('/account/verify-email/resend', [EmailVerificationController::class, 'resend'], [AuthMiddleware::class]);
     $router->get('/account/security/password', [AccountSecurityController::class, 'passwordForm'], [AuthMiddleware::class]);
     $router->post('/account/security/password', [AccountSecurityController::class, 'changePassword'], [AuthMiddleware::class]);
     $router->get('/account/notifications', [NotificationController::class, 'index'], [AuthMiddleware::class]);
@@ -46,28 +50,28 @@ return static function (Router $router): void {
     $router->get('/account/favorites', [FavoriteController::class, 'index'], [AuthMiddleware::class]);
     $router->get('/account/messages', [MessageController::class, 'index'], [AuthMiddleware::class]);
     $router->get('/account/messages/{id}', [MessageController::class, 'show'], [AuthMiddleware::class]);
-    $router->post('/account/messages/{id}', [MessageController::class, 'send'], [AuthMiddleware::class]);
-    $router->post('/messages/start/{listingId}', [MessageController::class, 'start'], [AuthMiddleware::class]);
-    $router->get('/reports/listing/{id}', [ReportController::class, 'listingForm'], [AuthMiddleware::class]);
-    $router->post('/reports/listing/{id}', [ReportController::class, 'listingStore'], [AuthMiddleware::class]);
-    $router->get('/reports/user/{id}', [ReportController::class, 'userForm'], [AuthMiddleware::class]);
-    $router->post('/reports/user/{id}', [ReportController::class, 'userStore'], [AuthMiddleware::class]);
-    $router->get('/reports/message/{id}', [ReportController::class, 'messageForm'], [AuthMiddleware::class]);
-    $router->post('/reports/message/{id}', [ReportController::class, 'messageStore'], [AuthMiddleware::class]);
-    $router->post('/favorites/{listingId}', [FavoriteController::class, 'store'], [AuthMiddleware::class]);
-    $router->post('/favorites/{listingId}/delete', [FavoriteController::class, 'destroy'], [AuthMiddleware::class]);
+    $router->post('/account/messages/{id}', [MessageController::class, 'send'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->post('/messages/start/{listingId}', [MessageController::class, 'start'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->get('/reports/listing/{id}', [ReportController::class, 'listingForm'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->post('/reports/listing/{id}', [ReportController::class, 'listingStore'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->get('/reports/user/{id}', [ReportController::class, 'userForm'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->post('/reports/user/{id}', [ReportController::class, 'userStore'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->get('/reports/message/{id}', [ReportController::class, 'messageForm'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->post('/reports/message/{id}', [ReportController::class, 'messageStore'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->post('/favorites/{listingId}', [FavoriteController::class, 'store'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->post('/favorites/{listingId}/delete', [FavoriteController::class, 'destroy'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
     $router->get('/account/orders', [OrderController::class, 'index'], [AuthMiddleware::class]);
     $router->get('/account/orders/{id}', [OrderController::class, 'show'], [AuthMiddleware::class]);
-    $router->post('/account/orders/{id}/test-pay', [OrderController::class, 'testPay'], [AuthMiddleware::class]);
+    $router->post('/account/orders/{id}/test-pay', [OrderController::class, 'testPay'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
     $router->get('/account/profile', [ProfileController::class, 'edit'], [AuthMiddleware::class]);
     $router->post('/account/profile', [ProfileController::class, 'update'], [AuthMiddleware::class]);
     $router->post('/account/profile/avatar', [ProfileController::class, 'uploadAvatar'], [AuthMiddleware::class]);
     $router->post('/account/profile/avatar/delete', [ProfileController::class, 'deleteAvatar'], [AuthMiddleware::class]);
-    $router->get('/account/creator/apply', [CreatorApplicationController::class, 'showApply'], [AuthMiddleware::class]);
-    $router->post('/account/creator/apply', [CreatorApplicationController::class, 'apply'], [AuthMiddleware::class]);
+    $router->get('/account/creator/apply', [CreatorApplicationController::class, 'showApply'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->post('/account/creator/apply', [CreatorApplicationController::class, 'apply'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
     $router->get('/account/creator/status', [CreatorApplicationController::class, 'status'], [AuthMiddleware::class]);
-    $router->get('/checkout/{listingId}', [CheckoutController::class, 'show'], [AuthMiddleware::class]);
-    $router->post('/checkout/{listingId}', [CheckoutController::class, 'store'], [AuthMiddleware::class]);
+    $router->get('/checkout/{listingId}', [CheckoutController::class, 'show'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->post('/checkout/{listingId}', [CheckoutController::class, 'store'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
     $router->get('/creator', [CreatorController::class, 'index'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
@@ -82,11 +86,13 @@ return static function (Router $router): void {
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
         ActiveCreatorMiddleware::class,
+        VerifiedEmailMiddleware::class,
     ]);
     $router->post('/creator/listings', [CreatorListingController::class, 'store'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
         ActiveCreatorMiddleware::class,
+        VerifiedEmailMiddleware::class,
     ]);
     $router->get('/creator/listings/{id}', [CreatorListingController::class, 'show'], [
         AuthMiddleware::class,
@@ -97,36 +103,43 @@ return static function (Router $router): void {
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
         ActiveCreatorMiddleware::class,
+        VerifiedEmailMiddleware::class,
     ]);
     $router->post('/creator/listings/{id}', [CreatorListingController::class, 'update'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
         ActiveCreatorMiddleware::class,
+        VerifiedEmailMiddleware::class,
     ]);
     $router->post('/creator/listings/{id}/submit', [CreatorListingController::class, 'submit'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
         ActiveCreatorMiddleware::class,
+        VerifiedEmailMiddleware::class,
     ]);
     $router->get('/creator/listings/{id}/media', [CreatorMediaController::class, 'index'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
         ActiveCreatorMiddleware::class,
+        VerifiedEmailMiddleware::class,
     ]);
     $router->post('/creator/listings/{id}/media', [CreatorMediaController::class, 'store'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
         ActiveCreatorMiddleware::class,
+        VerifiedEmailMiddleware::class,
     ]);
     $router->post('/creator/listings/{id}/media/{mediaId}/cover', [CreatorMediaController::class, 'setCover'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
         ActiveCreatorMiddleware::class,
+        VerifiedEmailMiddleware::class,
     ]);
     $router->post('/creator/listings/{id}/media/{mediaId}/delete', [CreatorMediaController::class, 'destroy'], [
         AuthMiddleware::class,
         [RoleMiddleware::class, [['creator']]],
         ActiveCreatorMiddleware::class,
+        VerifiedEmailMiddleware::class,
     ]);
     $router->get('/creator/{username}', [PublicCreatorController::class, 'show']);
     $router->get('/moderator', [ModeratorController::class, 'index'], [
@@ -213,5 +226,6 @@ return static function (Router $router): void {
     $router->post('/forgot-password', [PasswordResetController::class, 'requestReset'], [GuestMiddleware::class]);
     $router->get('/reset-password/{token}', [PasswordResetController::class, 'resetForm'], [GuestMiddleware::class]);
     $router->post('/reset-password/{token}', [PasswordResetController::class, 'resetPassword'], [GuestMiddleware::class]);
+    $router->get('/verify-email/{token}', [EmailVerificationController::class, 'verify']);
     $router->post('/logout', [AuthController::class, 'logout'], [AuthMiddleware::class]);
 };

@@ -11,6 +11,15 @@ ob_start();
         <p class="page-subtitle">Gestiona tu perfil, pedidos y acceso creator.</p>
     </header>
 
+    <?php if (empty($emailVerified)): ?>
+        <div class="alert alert-error" role="status">
+            Debes verificar tu correo.
+            <a href="<?= $e($verifyEmailUrl) ?>">Reenviar email de verificación</a>
+        </div>
+    <?php else: ?>
+        <p class="muted">Email verificado.</p>
+    <?php endif; ?>
+
     <div class="action-grid">
         <a class="action-card" href="<?= $e($profileUrl) ?>">
             <h2 class="action-card-title">Editar perfil</h2>

@@ -51,5 +51,6 @@ return [
         'forgot_password' => ['max' => 5, 'decay' => 3600],
         'reset_password' => ['max' => 10, 'decay' => 1800],
         'change_password' => ['max' => 10, 'decay' => 3600],
+        'email_verification_resend' => ['max' => 5, 'decay' => 3600],
     ],
 ];
