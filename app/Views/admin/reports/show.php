@@ -26,7 +26,19 @@ ob_start();
         </section>
         <section class="admin-panel">
             <h2>Objetivo</h2>
-            <pre class="admin-metadata"><?= $e(json_encode($report['target'] ?? [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) ?: '') ?></pre>
+            <?php
+            $target = is_array($report['target'] ?? null) ? $report['target'] : [];
+            if ($target === []):
+            ?>
+                <p class="muted">Sin datos de objetivo.</p>
+            <?php else: ?>
+                <dl class="admin-dl">
+                    <?php foreach ($target as $key => $value): ?>
+                        <dt><?= $e((string) $key) ?></dt>
+                        <dd><?= $e(is_scalar($value) || $value === null ? (string) ($value ?? '—') : (string) (json_encode($value, JSON_UNESCAPED_UNICODE) ?: '')) ?></dd>
+                    <?php endforeach; ?>
+                </dl>
+            <?php endif; ?>
         </section>
     </div>
     <section class="admin-section">

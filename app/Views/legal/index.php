@@ -14,13 +14,13 @@ ob_start();
         <p class="page-subtitle">Documentos base de ERONYX. Estado: borrador pendiente de revisión profesional.</p>
     </header>
     <ul class="legal-hub">
-        <li><a href="<?= $e(\App\Core\Layout::url('/terms')) ?>">Términos de uso</a></li>
-        <li><a href="<?= $e(\App\Core\Layout::url('/privacy')) ?>">Política de privacidad</a></li>
-        <li><a href="<?= $e(\App\Core\Layout::url('/cookies')) ?>">Política de cookies</a></li>
-        <li><a href="<?= $e(\App\Core\Layout::url('/content-policy')) ?>">Política de contenido</a></li>
-        <li><a href="<?= $e(\App\Core\Layout::url('/creator-rules')) ?>">Reglas para creators</a></li>
-        <li><a href="<?= $e(\App\Core\Layout::url('/age-policy')) ?>">Política de mayoría de edad</a></li>
-        <li><a href="<?= $e(\App\Core\Layout::url('/reporting-policy')) ?>">Reportes y retirada de contenido</a></li>
+        <li><a class="legal-hub-card" href="<?= $e(\App\Core\Layout::url('/terms')) ?>">Términos de uso<span>Condiciones de uso de la plataforma.</span></a></li>
+        <li><a class="legal-hub-card" href="<?= $e(\App\Core\Layout::url('/privacy')) ?>">Política de privacidad<span>Cómo tratamos datos personales.</span></a></li>
+        <li><a class="legal-hub-card" href="<?= $e(\App\Core\Layout::url('/cookies')) ?>">Política de cookies<span>Uso de cookies y tecnologías similares.</span></a></li>
+        <li><a class="legal-hub-card" href="<?= $e(\App\Core\Layout::url('/content-policy')) ?>">Política de contenido<span>Qué está permitido publicar.</span></a></li>
+        <li><a class="legal-hub-card" href="<?= $e(\App\Core\Layout::url('/creator-rules')) ?>">Reglas para creators<span>Obligaciones de quien vende en ERONYX.</span></a></li>
+        <li><a class="legal-hub-card" href="<?= $e(\App\Core\Layout::url('/age-policy')) ?>">Política de mayoría de edad<span>Acceso solo para adultos.</span></a></li>
+        <li><a class="legal-hub-card" href="<?= $e(\App\Core\Layout::url('/reporting-policy')) ?>">Reportes y retirada<span>Cómo denunciar y pedir retirada.</span></a></li>
     </ul>
 </div>
 <?php

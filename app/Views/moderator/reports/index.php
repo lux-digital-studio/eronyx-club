@@ -13,7 +13,8 @@ ob_start();
 
     <?php if ($reports === []): ?>
         <div class="empty-state">
-            <p>No hay reportes pendientes.</p>
+            <h2 class="empty-state-title">Cola vacía</h2>
+            <p class="empty-state-copy">No hay reportes pendientes.</p>
         </div>
     <?php else: ?>
         <ul class="report-queue">

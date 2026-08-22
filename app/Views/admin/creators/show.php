@@ -28,7 +28,7 @@ ob_start();
             <h2>Listings</h2>
             <dl class="admin-dl">
                 <?php foreach (($creator['listing_stats'] ?? []) as $status => $count): ?>
-                    <dt><?= $e((string) $status) ?></dt><dd><?= $e((string) $count) ?></dd>
+                    <dt><?= $e(\App\Core\Layout::statusLabel((string) $status)) ?></dt><dd><?= $e((string) $count) ?></dd>
                 <?php endforeach; ?>
             </dl>
         </section>

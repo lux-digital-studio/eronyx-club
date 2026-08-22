@@ -7,9 +7,10 @@ ob_start();
 ?>
 <div class="container">
     <div class="checkout-shell">
+        <p class="dev-banner">Test / development — el pago real no está activo</p>
         <header class="page-header">
             <h1 class="page-title">Checkout</h1>
-            <p class="page-subtitle">Revisa el resumen y crea el pedido.</p>
+            <p class="page-subtitle">Revisa el resumen y crea el pedido. Este flujo no cobra con tarjeta.</p>
         </header>
 
         <article class="card">

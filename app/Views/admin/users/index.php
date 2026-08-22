@@ -57,7 +57,7 @@ ob_start();
     </form>
 
     <?php if ($items === []): ?>
-        <div class="empty-state"><p>No hay usuarios con esos filtros.</p></div>
+        <div class="empty-state"><h2 class="empty-state-title">Sin resultados</h2><p class="empty-state-copy">No hay usuarios con esos filtros.</p></div>
     <?php else: ?>
         <div class="table-wrapper">
             <table class="table">

@@ -52,18 +52,21 @@ ob_start();
                 <input id="password_confirmation" type="password" name="password_confirmation" required minlength="10" maxlength="255" autocomplete="new-password">
             </div>
 
-            <label class="checkbox-row">
-                <input type="checkbox" name="accept_terms" value="1">
-                <span>Acepto los <a href="<?= $e(\App\Core\Layout::url('/terms')) ?>">términos de uso</a>.</span>
-            </label>
-            <label class="checkbox-row">
-                <input type="checkbox" name="accept_privacy" value="1">
-                <span>Acepto la <a href="<?= $e(\App\Core\Layout::url('/privacy')) ?>">política de privacidad</a>.</span>
-            </label>
-            <label class="checkbox-row">
-                <input type="checkbox" name="accept_age" value="1">
-                <span>Declaro que soy mayor de 18 años según la <a href="<?= $e(\App\Core\Layout::url('/age-policy')) ?>">política de mayoría de edad</a>.</span>
-            </label>
+            <fieldset>
+                <legend>Consentimientos</legend>
+                <label class="checkbox-row">
+                    <input type="checkbox" name="accept_terms" value="1">
+                    <span>Acepto los <a href="<?= $e(\App\Core\Layout::url('/terms')) ?>">términos de uso</a>.</span>
+                </label>
+                <label class="checkbox-row">
+                    <input type="checkbox" name="accept_privacy" value="1">
+                    <span>Acepto la <a href="<?= $e(\App\Core\Layout::url('/privacy')) ?>">política de privacidad</a>.</span>
+                </label>
+                <label class="checkbox-row">
+                    <input type="checkbox" name="accept_age" value="1">
+                    <span>Declaro que soy mayor de 18 años según la <a href="<?= $e(\App\Core\Layout::url('/age-policy')) ?>">política de mayoría de edad</a>.</span>
+                </label>
+            </fieldset>
 
             <button class="btn btn-primary" type="submit">Registrarme</button>
         </form>

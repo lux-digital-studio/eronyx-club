@@ -38,6 +38,7 @@ ob_start();
             <div class="form-group">
                 <label for="new_password">Nueva contraseña</label>
                 <input id="new_password" type="password" name="new_password" required minlength="10" maxlength="255" autocomplete="new-password">
+                <p class="form-help">Mínimo 10 caracteres. No se activa un segundo factor en esta fase.</p>
             </div>
 
             <div class="form-group">

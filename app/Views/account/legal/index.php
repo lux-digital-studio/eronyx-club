@@ -41,15 +41,26 @@ ob_start();
         <?php if (($consents ?? []) === []): ?>
             <p class="muted">No hay consentimientos registrados.</p>
         <?php else: ?>
-            <ul class="legal-consent-list">
-                <?php foreach ($consents as $consent): ?>
-                    <li>
-                        <?= $e($labels[$consent['consent_type']] ?? $consent['consent_type']) ?>
-                        · versión <?= $e($consent['document_version']) ?>
-                        · <?= $e($consent['accepted_at']) ?>
-                    </li>
-                <?php endforeach; ?>
-            </ul>
+            <div class="table-wrapper">
+                <table class="table consent-table">
+                    <thead>
+                        <tr>
+                            <th>Documento</th>
+                            <th>Versión</th>
+                            <th>Aceptado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($consents as $consent): ?>
+                            <tr>
+                                <td><?= $e($labels[$consent['consent_type']] ?? $consent['consent_type']) ?></td>
+                                <td><?= $e($consent['document_version']) ?></td>
+                                <td><?= $e($consent['accepted_at']) ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         <?php endif; ?>
     </section>
 

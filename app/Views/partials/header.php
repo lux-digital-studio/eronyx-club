@@ -57,9 +57,8 @@ $active = static function (string $target) use ($path): string {
                         <a class="nav-link" href="<?= $e($url('/creator')) ?>"<?= $active('/creator') ?>>Creator</a>
                     <?php endif; ?>
                     <?php if ($nav['showModerator']): ?>
-                        <a class="nav-link" href="<?= $e($url('/moderator')) ?>"<?= $active('/moderator') ?>>Moderación</a>
-                        <a class="nav-link" href="<?= $e($url('/moderator/reports')) ?>">
-                            Reportes<?php if (($nav['openReportCount'] ?? 0) > 0): ?> (<?= $e((string) $nav['openReportCount']) ?>)<?php endif; ?>
+                        <a class="nav-link" href="<?= $e($url('/moderator')) ?>"<?= $active('/moderator') ?>>
+                            Moderación<?php if (($nav['openReportCount'] ?? 0) > 0): ?><span class="nav-badge"><?= $e((string) $nav['openReportCount']) ?></span><?php endif; ?>
                         </a>
                     <?php endif; ?>
                     <?php if ($nav['showAdmin']): ?>

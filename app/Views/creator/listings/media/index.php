@@ -50,7 +50,7 @@ ob_start();
     <?php else: ?>
         <div class="media-grid media-manager">
             <?php foreach ($mediaItems as $item): ?>
-                <article class="media-card<?= $item['media_type'] === 'video' ? ' is-video' : '' ?>">
+                <article class="media-card<?= $item['media_type'] === 'video' ? ' is-video' : '' ?><?= $item['usage_type'] === 'cover' ? ' is-cover' : '' ?><?= $item['usage_type'] === 'private_content' ? ' is-private' : '' ?>">
                     <div class="media-card-preview">
                         <?php if ($item['media_type'] === 'video'): ?>
                             <video src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>" controls preload="metadata" controlsList="nodownload" width="320"></video>

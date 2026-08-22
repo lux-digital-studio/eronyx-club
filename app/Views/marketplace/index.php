@@ -131,9 +131,12 @@ ob_start();
         </ul>
     <?php endif; ?>
 
+    <p class="result-count"><?= $e((string) ($total ?? count($listings))) ?> resultado(s)</p>
+
     <?php if ($listings === []): ?>
         <div class="empty-state">
-            <p>No se encontraron publicaciones con estos filtros.</p>
+            <h2 class="empty-state-title">Sin resultados</h2>
+            <p class="empty-state-copy">No se encontraron publicaciones con estos filtros.</p>
             <?php if ($hasActiveFilters): ?>
                 <p class="empty-state-actions">
                     <a class="btn btn-secondary" href="<?= $e($indexUrl) ?>">Limpiar filtros</a>
@@ -167,7 +170,7 @@ ob_start();
             <span class="pagination-disabled">Anterior</span>
         <?php endif; ?>
 
-        <span>Página <?= $e($currentPage) ?> de <?= $e($lastPage) ?></span>
+        <span aria-current="page">Página <?= $e($currentPage) ?> de <?= $e($lastPage) ?></span>
 
         <?php if ($currentPage < $lastPage): ?>
             <a class="btn btn-ghost" href="<?= $e($pageUrl($query, $currentPage + 1)) ?>">Siguiente</a>

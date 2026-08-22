@@ -13,7 +13,8 @@ ob_start();
 
     <?php if ($applications === []): ?>
         <div class="empty-state">
-            <p>No hay solicitudes pendientes.</p>
+            <h2 class="empty-state-title">Cola vacía</h2>
+            <p class="empty-state-copy">No hay solicitudes pendientes.</p>
         </div>
     <?php else: ?>
         <ul class="queue-list">

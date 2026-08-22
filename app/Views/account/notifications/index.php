@@ -30,10 +30,11 @@ ob_start();
 
     <?php if ($notifications === []): ?>
         <div class="empty-state">
-            <p>No tienes notificaciones todavía.</p>
+            <h2 class="empty-state-title">Bandeja vacía</h2>
+            <p class="empty-state-copy">No tienes notificaciones todavía.</p>
         </div>
     <?php else: ?>
-        <ul class="message-inbox">
+        <ul class="message-inbox notification-inbox">
             <?php foreach ($notifications as $notification): ?>
                 <?php
                 $unread = ($notification['read_at'] ?? null) === null;
@@ -83,7 +84,7 @@ ob_start();
             <span class="pagination-disabled">Anterior</span>
         <?php endif; ?>
 
-        <span>Página <?= $e((string) $currentPage) ?> de <?= $e((string) $lastPage) ?></span>
+        <span aria-current="page">Página <?= $e((string) $currentPage) ?> de <?= $e((string) $lastPage) ?></span>
 
         <?php if ($currentPage < $lastPage): ?>
             <a class="btn btn-ghost" href="<?= $e($pageUrl($currentPage + 1)) ?>">Siguiente</a>

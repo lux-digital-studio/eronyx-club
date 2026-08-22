@@ -13,7 +13,8 @@ ob_start();
 
     <?php if ($listings === []): ?>
         <div class="empty-state">
-            <p>No hay publicaciones pendientes.</p>
+            <h2 class="empty-state-title">Cola vacía</h2>
+            <p class="empty-state-copy">No hay publicaciones pendientes.</p>
         </div>
     <?php else: ?>
         <div class="table-wrapper desktop-only">

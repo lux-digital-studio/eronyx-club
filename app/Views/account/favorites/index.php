@@ -16,7 +16,8 @@ ob_start();
 
     <?php if ($listings === []): ?>
         <div class="empty-state">
-            <p>Aún no has guardado publicaciones.</p>
+            <h2 class="empty-state-title">Sin favoritos</h2>
+            <p class="empty-state-copy">Aún no has guardado publicaciones.</p>
             <p class="empty-state-actions">
                 <a class="btn btn-secondary" href="<?= $e($marketplaceUrl) ?>">Explorar marketplace</a>
             </p>

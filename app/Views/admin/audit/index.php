@@ -53,7 +53,7 @@ ob_start();
         <button class="btn btn-primary" type="submit">Filtrar</button>
     </form>
     <?php if ($items === []): ?>
-        <div class="empty-state"><p>No hay eventos con esos filtros.</p></div>
+        <div class="empty-state"><h2 class="empty-state-title">Sin resultados</h2><p class="empty-state-copy">No hay eventos con esos filtros.</p></div>
     <?php else: ?>
         <div class="table-wrapper">
             <table class="table">

@@ -11,7 +11,8 @@ ob_start();
         <h1 class="page-title">Enviar reporte</h1>
         <p class="page-subtitle">
             <?= $e(\App\Core\Layout::reportTargetLabel((string) $context['target_type'])) ?>:
-            <?= $e((string) $context['title']) ?>
+            <?= $e((string) $context['title']) ?>.
+            Usa este formulario para informar de un posible problema. Un equipo revisará el aviso.
         </p>
     </header>
 

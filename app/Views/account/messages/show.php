@@ -9,7 +9,7 @@ $listingSlug = is_string($conversation['listing_slug'] ?? null) ? $conversation[
 $closed = ($conversation['status'] ?? '') !== 'active';
 ob_start();
 ?>
-<div class="container">
+<div class="container chat-shell">
     <header class="page-header message-thread-header">
         <div>
             <h1 class="page-title"><?= $e($otherName) ?></h1>

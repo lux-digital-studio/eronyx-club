@@ -14,7 +14,7 @@ $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_Q
     <?php else: ?>
         <span class="pagination-disabled">Anterior</span>
     <?php endif; ?>
-    <span>Página <?= $e((string) $currentPage) ?> de <?= $e((string) $lastPage) ?></span>
+    <span aria-current="page">Página <?= $e((string) $currentPage) ?> de <?= $e((string) $lastPage) ?></span>
     <?php if ($currentPage < $lastPage): ?>
         <a class="btn btn-ghost" href="<?= $e($pageUrl($currentPage + 1)) ?>">Siguiente</a>
     <?php else: ?>

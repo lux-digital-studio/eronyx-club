@@ -70,15 +70,23 @@ ob_start();
     </div>
 
     <?php if (!empty($canManage) && ($user['status'] ?? '') === 'active'): ?>
-        <form method="post" action="<?= $e($suspendUrl) ?>">
-            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-            <button class="btn btn-secondary" type="submit">Suspender cuenta</button>
-        </form>
+        <section class="danger-zone">
+            <h2>Zona sensible</h2>
+            <p class="muted">Suspender impide el acceso de esta cuenta. No es irreversible.</p>
+            <form method="post" action="<?= $e($suspendUrl) ?>">
+                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                <button class="btn btn-danger" type="submit">Suspender cuenta</button>
+            </form>
+        </section>
     <?php elseif (!empty($canManage) && ($user['status'] ?? '') === 'suspended'): ?>
-        <form method="post" action="<?= $e($reactivateUrl) ?>">
-            <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
-            <button class="btn btn-primary" type="submit">Reactivar cuenta</button>
-        </form>
+        <section class="danger-zone">
+            <h2>Zona sensible</h2>
+            <p class="muted">La cuenta está suspendida. Reactivarla restaura el acceso.</p>
+            <form method="post" action="<?= $e($reactivateUrl) ?>">
+                <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">
+                <button class="btn btn-secondary" type="submit">Reactivar cuenta</button>
+            </form>
+        </section>
     <?php elseif (in_array('admin', $user['roles'] ?? [], true) || in_array('moderator', $user['roles'] ?? [], true)): ?>
         <p class="muted">Las cuentas admin y moderator son de solo lectura en ADMIN-2.</p>
     <?php endif; ?>

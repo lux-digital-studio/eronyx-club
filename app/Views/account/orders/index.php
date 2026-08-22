@@ -13,7 +13,11 @@ ob_start();
 
     <?php if ($orders === []): ?>
         <div class="empty-state">
-            <p>No hay pedidos.</p>
+            <h2 class="empty-state-title">Sin pedidos</h2>
+            <p class="empty-state-copy">No hay pedidos.</p>
+            <p class="empty-state-actions">
+                <a class="btn btn-secondary" href="<?= $e(\App\Core\Layout::url('/marketplace')) ?>">Explorar marketplace</a>
+            </p>
         </div>
     <?php else: ?>
         <div class="orders-grid">

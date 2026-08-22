@@ -16,7 +16,8 @@ ob_start();
 
     <?php if ($listings === []): ?>
         <div class="empty-state">
-            <p>No tienes publicaciones todavía.</p>
+            <h2 class="empty-state-title">Sin publicaciones</h2>
+            <p class="empty-state-copy">No tienes publicaciones todavía.</p>
             <p class="empty-state-actions">
                 <a class="btn btn-secondary" href="<?= $e($createUrl) ?>">Crear publicación</a>
             </p>
@@ -29,8 +30,9 @@ ob_start();
                         <th>Título</th>
                         <th>Estado</th>
                         <th>Tipo</th>
+                        <th>Visibilidad</th>
                         <th>Precio</th>
-                        <th>Creada</th>
+                        <th>Actualizada</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -44,8 +46,9 @@ ob_start();
                                 </span>
                             </td>
                             <td><?= $e(\App\Core\Layout::listingTypeLabel((string) $listing['listing_type'])) ?></td>
+                            <td><?= $e(\App\Core\Layout::visibilityLabel((string) ($listing['visibility'] ?? ''))) ?></td>
                             <td><?= $e(\App\Core\Layout::formatPrice($listing['price'], $listing['currency'])) ?></td>
-                            <td><?= $e($listing['created_at']) ?></td>
+                            <td><?= $e($listing['updated_at'] ?? $listing['created_at']) ?></td>
                             <td>
                                 <a href="<?= $e($baseUrl . '/' . $listing['id']) ?>">Ver</a>
                                 <?php if (in_array($listing['status'], ['draft', 'rejected'], true)): ?>
@@ -69,6 +72,7 @@ ob_start();
                     </p>
                     <p class="muted">
                         <?= $e(\App\Core\Layout::listingTypeLabel((string) $listing['listing_type'])) ?>
+                        · <?= $e(\App\Core\Layout::visibilityLabel((string) ($listing['visibility'] ?? ''))) ?>
                         · <?= $e(\App\Core\Layout::formatPrice($listing['price'], $listing['currency'])) ?>
                     </p>
                     <p class="stack">

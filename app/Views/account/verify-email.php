@@ -5,7 +5,7 @@ declare(strict_types=1);
 $e = static fn (mixed $value): string => htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 ob_start();
 ?>
-<div class="container">
+<div class="container container--narrow">
     <header class="page-header">
         <h1 class="page-title">Verificación de correo</h1>
         <p class="page-subtitle">Confirma tu email para usar las funciones de ERONYX.</p>

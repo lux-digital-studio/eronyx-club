@@ -29,7 +29,8 @@ ob_start();
 
     <?php if ($conversations === []): ?>
         <div class="empty-state">
-            <p>No hay conversaciones todavía.</p>
+            <h2 class="empty-state-title">Sin mensajes</h2>
+            <p class="empty-state-copy">No hay conversaciones todavía.</p>
             <p><a class="btn btn-ghost" href="<?= $e($marketplaceUrl) ?>">Ir al marketplace</a></p>
         </div>
     <?php else: ?>
