@@ -254,7 +254,7 @@ final class Response
         }
 
         $inner = $this->errorView($status, false, $homeUrl, $marketplaceUrl, $accountUrl);
-        $cssUrl = Layout::url('/css/app.css');
+        $cssUrl = Layout::asset('/css/app.css');
         $content = $inner;
 
         ob_start();

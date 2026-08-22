@@ -13,13 +13,14 @@ ob_start();
         <div class="listing-detail-media">
             <?php if ($coverItems !== []): ?>
                 <div class="listing-hero">
-                    <?php foreach ($coverItems as $item): ?>
+                    <?php foreach ($coverItems as $index => $item): ?>
                         <img
                             class="media-cover"
                             src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>"
                             alt="<?= $e($listing['title']) ?>"
                             width="640"
                             height="800"
+                            <?= $index === 0 ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"' ?>
                         >
                     <?php endforeach; ?>
                 </div>
@@ -46,6 +47,7 @@ ob_start();
                                     width="240"
                                     height="300"
                                     loading="lazy"
+                                    decoding="async"
                                 >
                             </li>
                         <?php endforeach; ?>
@@ -67,6 +69,7 @@ ob_start();
                                     width="240"
                                     height="300"
                                     loading="lazy"
+                                    decoding="async"
                                 >
                             </li>
                         <?php endforeach; ?>
@@ -92,6 +95,7 @@ ob_start();
                                             width="240"
                                             height="300"
                                             loading="lazy"
+                                            decoding="async"
                                         >
                                     <?php endif; ?>
                                 </li>

@@ -12,8 +12,12 @@ use App\Repositories\UserRepository;
 
 final class Nav
 {
+    /** @var array<string, mixed>|null */
+    private static ?array $requestContext = null;
+
     /**
      * Presentation-only nav flags. Does not replace middleware.
+     * Memoized per PHP request only — not stored in the session.
      *
      * @return array{
      *   authenticated: bool,
@@ -29,6 +33,10 @@ final class Nav
      */
     public static function context(): array
     {
+        if (self::$requestContext !== null) {
+            return self::$requestContext;
+        }
+
         $session = new Session();
         $auth = new Auth($session);
         $authenticated = $auth->check();
@@ -66,7 +74,7 @@ final class Nav
             $csrf = (new Csrf($session))->token();
         }
 
-        return [
+        self::$requestContext = [
             'authenticated' => $authenticated,
             'csrf' => $csrf,
             'path' => (new Request())->path(),
@@ -77,5 +85,7 @@ final class Nav
             'notificationUnreadCount' => $notificationUnreadCount,
             'openReportCount' => $openReportCount,
         ];
+
+        return self::$requestContext;
     }
 }

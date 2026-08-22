@@ -55,7 +55,7 @@ ob_start();
                         <?php if ($item['media_type'] === 'video'): ?>
                             <video src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>" controls preload="metadata" controlsList="nodownload" width="320"></video>
                         <?php else: ?>
-                            <img src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>" alt="<?= $e($listing['title']) ?>" width="240" height="300" loading="lazy">
+                            <img src="<?= $e($mediaBaseUrl . '/' . $item['media_file_id']) ?>" alt="<?= $e($listing['title']) ?>" width="240" height="300" loading="lazy" decoding="async">
                         <?php endif; ?>
                     </div>
                     <div class="media-card-body">

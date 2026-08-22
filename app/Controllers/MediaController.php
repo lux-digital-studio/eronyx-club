@@ -192,8 +192,24 @@ final class MediaController
         header('X-Content-Type-Options: nosniff');
         header('Content-Disposition: inline');
 
+        $mtime = filemtime($path);
+        $etag = $this->publicEtag($media, (int) $size, $mtime);
+
         if ($access === 'public') {
-            header('Cache-Control: public, max-age=3600');
+            // Media IDs are immutable (replacement creates a new file/id). 1 day + ETag revalidation.
+            header('Cache-Control: public, max-age=86400');
+            header('ETag: ' . $etag);
+
+            if ($mtime !== false) {
+                header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $mtime) . ' GMT');
+            }
+
+            $rangeHeader = (string) ($_SERVER['HTTP_RANGE'] ?? '');
+
+            if ($rangeHeader === '' && $this->isFreshPublicCopy($etag, $mtime)) {
+                http_response_code(304);
+                exit;
+            }
         } else {
             header('Cache-Control: private, no-store');
             header('Pragma: no-cache');
@@ -223,6 +239,47 @@ final class MediaController
         header('Content-Length: ' . (string) $size);
         readfile($path);
         exit;
+    }
+
+    /** @param array<string, mixed> $media */
+    private function publicEtag(array $media, int $size, int|false $mtime): string
+    {
+        $checksum = preg_replace('/[^a-f0-9]/i', '', (string) ($media['checksum'] ?? '')) ?? '';
+
+        if (strlen($checksum) >= 32) {
+            return '"' . strtolower($checksum) . '"';
+        }
+
+        return '"' . hash('sha256', (string) $size . ':' . (string) $mtime) . '"';
+    }
+
+    private function isFreshPublicCopy(string $etag, int|false $mtime): bool
+    {
+        $noneMatch = trim((string) ($_SERVER['HTTP_IF_NONE_MATCH'] ?? ''));
+
+        if ($noneMatch === '*') {
+            return true;
+        }
+
+        if ($noneMatch !== '') {
+            foreach (explode(',', $noneMatch) as $candidate) {
+                $candidate = trim(str_replace('W/', '', $candidate));
+
+                if ($candidate === $etag) {
+                    return true;
+                }
+            }
+        }
+
+        $modifiedSince = trim((string) ($_SERVER['HTTP_IF_MODIFIED_SINCE'] ?? ''));
+
+        if ($mtime === false || $modifiedSince === '') {
+            return false;
+        }
+
+        $since = strtotime($modifiedSince);
+
+        return $since !== false && $mtime <= $since;
     }
 
     /** @return array{0: int, 1: int}|false|null */

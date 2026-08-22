@@ -17,6 +17,7 @@ ob_start();
                 alt="<?= $e('Avatar de ' . $profile['display_name']) ?>"
                 width="140"
                 height="140"
+                fetchpriority="high"
             >
         <?php else: ?>
             <span class="profile-hero-avatar profile-avatar-fallback" aria-hidden="true">ERONYX</span>

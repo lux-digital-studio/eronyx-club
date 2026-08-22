@@ -264,7 +264,7 @@ final class MediaRepository
     {
         $statement = $this->pdo->prepare(
             "SELECT mf.id, mf.owner_user_id, mf.storage_key, mf.mime_type, mf.size_bytes, mf.status,
-                    mf.media_type, mf.visibility, mf.deleted_at,
+                    mf.media_type, mf.visibility, mf.deleted_at, mf.checksum,
                     lm.listing_id, lm.usage_type,
                     l.owner_user_id AS listing_owner_user_id, l.status AS listing_status,
                     l.visibility AS listing_visibility, l.published_at, l.deleted_at AS listing_deleted_at,

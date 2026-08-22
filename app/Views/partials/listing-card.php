@@ -38,6 +38,7 @@ $favoriteLabel = $isFavorite ? 'Quitar de favoritos' : 'Guardar en favoritos';
                 width="400"
                 height="500"
                 loading="lazy"
+                decoding="async"
             >
         <?php else: ?>
             <span class="listing-card-placeholder" aria-hidden="true">
@@ -64,6 +65,7 @@ $favoriteLabel = $isFavorite ? 'Quitar de favoritos' : 'Guardar en favoritos';
                         width="40"
                         height="40"
                         loading="lazy"
+                        decoding="async"
                     >
                 <?php else: ?>
                     <span class="creator-avatar creator-avatar-fallback" aria-hidden="true"></span>

@@ -27,6 +27,20 @@ final class Layout
         return $base . '/' . ltrim($path, '/');
     }
 
+    public static function asset(string $path): string
+    {
+        $url = self::url($path);
+        $file = dirname(__DIR__, 2) . '/public/' . ltrim($path, '/');
+
+        if (!is_file($file)) {
+            return $url;
+        }
+
+        $mtime = filemtime($file);
+
+        return $mtime === false ? $url : $url . '?v=' . $mtime;
+    }
+
     public static function escape(mixed $value): string
     {
         return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');

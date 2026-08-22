@@ -38,7 +38,7 @@ $bodyClass = trim('site-body ' . ($bodyClass ?? ''));
     <?php if (!empty($seoMeta['ogImage'])): ?>
         <meta name="twitter:image" content="<?= $e($seoMeta['ogImage']) ?>">
     <?php endif; ?>
-    <link rel="stylesheet" href="<?= $e(\App\Core\Layout::url('/css/app.css')) ?>">
+    <link rel="stylesheet" href="<?= $e(\App\Core\Layout::asset('/css/app.css')) ?>">
     <?php if (!empty($seoMeta['jsonLd'])): ?>
         <script type="application/ld+json"><?= $seoMeta['jsonLd'] ?></script>
     <?php endif; ?>
@@ -50,6 +50,6 @@ $bodyClass = trim('site-body ' . ($bodyClass ?? ''));
         <?= $content ?>
     </main>
     <?php require dirname(__DIR__) . '/partials/footer.php'; ?>
-    <script src="<?= $e(\App\Core\Layout::url('/js/app.js')) ?>" defer></script>
+    <script src="<?= $e(\App\Core\Layout::asset('/js/app.js')) ?>" defer></script>
 </body>
 </html>
