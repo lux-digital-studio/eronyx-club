@@ -38,6 +38,8 @@ final class Logger
         'otpauth',
         'secret_encrypted',
         'mfa_secret',
+        'mfa_encryption_key',
+        'encryption_key',
     ];
 
     public static function error(string $message, array $context = []): void

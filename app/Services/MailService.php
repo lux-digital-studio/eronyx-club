@@ -163,6 +163,16 @@ final class MailService
                 $mail->SMTPAutoTLS = false;
             }
 
+            if ($encryption === 'tls' || $encryption === 'ssl') {
+                $mail->SMTPOptions = [
+                    'ssl' => [
+                        'verify_peer' => true,
+                        'verify_peer_name' => true,
+                        'allow_self_signed' => false,
+                    ],
+                ];
+            }
+
             $mail->setFrom($fromAddress, $fromName);
             $mail->addAddress($toEmail, $toName);
             $mail->Subject = $subject;

@@ -163,9 +163,7 @@ final class OrderController
 
     private function isLocal(): bool
     {
-        $config = require dirname(__DIR__, 2) . '/config/app.php';
-
-        return $config['env'] === 'local';
+        return \App\Core\EnvironmentValidator::allowsTestPayment(\App\Core\EnvironmentValidator::currentEnv());
     }
 
     private function notFound(): ?string

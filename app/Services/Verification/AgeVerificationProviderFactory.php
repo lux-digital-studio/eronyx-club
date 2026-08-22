@@ -25,6 +25,12 @@ final class AgeVerificationProviderFactory
         }
 
         if ($provider === 'test') {
+            $env = \App\Core\EnvironmentValidator::currentEnv();
+
+            if (!\App\Core\EnvironmentValidator::allowsTestVerificationProvider($env)) {
+                throw new RuntimeException('provider_not_configured');
+            }
+
             return new TestAgeVerificationProvider();
         }
 
