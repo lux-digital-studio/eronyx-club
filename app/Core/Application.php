@@ -68,7 +68,7 @@ final class Application
         ]);
 
         if (!headers_sent()) {
-            $this->response->send('Ha ocurrido un error. Inténtalo de nuevo más tarde.', 500);
+            $this->response->serverError();
         }
     }
 

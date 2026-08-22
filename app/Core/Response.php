@@ -61,8 +61,16 @@ final class Response
 
     public function send(string $content, int $statusCode = 200): void
     {
+        $status = $this->normalizeStatus($statusCode);
+
+        if ($this->shouldRenderErrorPage($content, $status)) {
+            $this->sendErrorPage($status);
+
+            return;
+        }
+
         $this->applySecurityHeaders();
-        http_response_code($this->normalizeStatus($statusCode));
+        http_response_code($status);
 
         if (!headers_sent()) {
             $this->setHeader('Content-Type', 'text/html; charset=UTF-8');
@@ -73,12 +81,12 @@ final class Response
 
     public function notFound(): void
     {
-        $this->send('404 - Not Found', 404);
+        $this->sendErrorPage(404);
     }
 
     public function forbidden(): void
     {
-        $this->send('403 - Forbidden', 403);
+        $this->sendErrorPage(403);
     }
 
     public function tooManyRequests(?int $retryAfter = null): void
@@ -87,7 +95,12 @@ final class Response
             $this->setHeader('Retry-After', (string) $retryAfter);
         }
 
-        $this->send('Demasiadas solicitudes. Inténtalo más tarde.', 429);
+        $this->sendErrorPage(429);
+    }
+
+    public function serverError(): void
+    {
+        $this->sendErrorPage(500);
     }
 
     public function redirect(string $url, int $statusCode = 302): void
@@ -170,6 +183,85 @@ final class Response
         }
 
         return $statusCode;
+    }
+
+    private function shouldRenderErrorPage(string $content, int $status): bool
+    {
+        if (!in_array($status, [403, 404, 429, 500], true)) {
+            return false;
+        }
+
+        return !str_starts_with(ltrim($content), '<');
+    }
+
+    private function sendErrorPage(int $status): void
+    {
+        $status = in_array($status, [403, 404, 429, 500], true) ? $status : 500;
+
+        $this->applySecurityHeaders();
+        http_response_code($status);
+
+        if (!headers_sent()) {
+            $this->setHeader('Content-Type', 'text/html; charset=UTF-8');
+        }
+
+        echo $this->renderErrorPage($status);
+    }
+
+    private function renderErrorPage(int $status): string
+    {
+        $homeUrl = Layout::url('/');
+        $marketplaceUrl = Layout::url('/marketplace');
+        $accountUrl = Layout::url('/account');
+        $authenticated = false;
+        $titles = [
+            403 => 'Acceso denegado - ERONYX',
+            404 => 'Página no encontrada - ERONYX',
+            429 => 'Demasiadas solicitudes - ERONYX',
+            500 => 'Error del servidor - ERONYX',
+        ];
+        $pageTitle = $titles[$status] ?? $titles[500];
+
+        if ($status !== 500) {
+            try {
+                $authenticated = Nav::context()['authenticated'] === true;
+                $inner = $this->errorView($status, $authenticated, $homeUrl, $marketplaceUrl, $accountUrl);
+                ob_start();
+                Layout::render($pageTitle, $inner, 'page-error');
+
+                return (string) ob_get_clean();
+            } catch (\Throwable) {
+                // Fall through to the Nav-free shell.
+            }
+        }
+
+        $inner = $this->errorView($status, false, $homeUrl, $marketplaceUrl, $accountUrl);
+        $cssUrl = Layout::url('/css/app.css');
+        $content = $inner;
+
+        ob_start();
+        require dirname(__DIR__) . '/Views/errors/_fallback.php';
+
+        return (string) ob_get_clean();
+    }
+
+    private function errorView(
+        int $status,
+        bool $authenticated,
+        string $homeUrl,
+        string $marketplaceUrl,
+        string $accountUrl
+    ): string {
+        $file = dirname(__DIR__) . '/Views/errors/' . $status . '.php';
+
+        if (!is_file($file)) {
+            $file = dirname(__DIR__) . '/Views/errors/500.php';
+        }
+
+        ob_start();
+        require $file;
+
+        return (string) ob_get_clean();
     }
 
     /** @return array<string, mixed> */
