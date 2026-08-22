@@ -1,23 +1,29 @@
 :root {
-    --color-bg: #0b0b0f;
-    --color-bg-elevated: #101016;
-    --color-surface: #131318;
-    --color-surface-alt: #1a1a21;
-    --color-surface-hover: #22222b;
-    --color-border: #2a2a33;
-    --color-border-strong: #3d3d4a;
-    --color-text: #f5f5f7;
-    --color-text-muted: #c4c4ce;
-    --color-text-soft: #8d8d99;
-    --color-primary: #d946ef;
-    --color-primary-hover: #e879f9;
-    --color-primary-soft: rgb(217 70 239 / 0.14);
-    --color-accent: #f0b35a;
-    --color-success: #22c55e;
-    --color-warning: #f59e0b;
-    --color-danger: #ef4444;
-    --color-info: #60a5fa;
-    --color-focus: #f0b35a;
+    --color-bg: #0d0b0c;
+    --color-bg-deep: #0a0809;
+    --color-bg-elevated: #151012;
+    --color-surface: #1b1114;
+    --color-surface-alt: #221418;
+    --color-surface-hover: #25151a;
+    --color-velvet-deep: #3a1721;
+    --color-border: rgb(199 166 106 / 0.14);
+    --color-border-strong: rgb(199 166 106 / 0.28);
+    --color-text: #f3edef;
+    --color-text-muted: #b9a9ae;
+    --color-text-soft: #897a7f;
+    --color-primary: #6e1f32;
+    --color-primary-hover: #8b2941;
+    --color-primary-soft: rgb(110 31 50 / 0.18);
+    --color-primary-muted: #d48a9a;
+    --color-accent: #c7a66a;
+    --color-accent-soft: rgb(199 166 106 / 0.14);
+    --color-success: #3d9b6a;
+    --color-warning: #d4a017;
+    --color-danger: #c94a4a;
+    --color-info: #6b8c9e;
+    --color-focus: #c7a66a;
+    --color-on-primary: #f3edef;
+    --color-on-accent: #1b1114;
 
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -36,9 +42,9 @@
     --radius-xl: 1.25rem;
     --radius-pill: 999px;
 
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.35);
-    --shadow-md: 0 8px 24px rgb(0 0 0 / 0.28);
-    --shadow-lg: 0 20px 48px rgb(0 0 0 / 0.4);
+    --shadow-sm: 0 6px 18px rgb(0 0 0 / 0.28);
+    --shadow-md: 0 14px 32px rgb(0 0 0 / 0.34);
+    --shadow-lg: 0 22px 50px rgb(0 0 0 / 0.42);
 
     --container-sm: 32.5rem;
     --container-md: 54rem;
@@ -104,7 +110,7 @@ a {
 }
 
 a:hover {
-    color: var(--color-primary);
+    color: var(--color-accent);
 }
 
 a:focus-visible,
@@ -116,6 +122,7 @@ textarea:focus-visible,
 .nav-toggle-input:focus-visible + .nav-toggle {
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
+    box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
 .link-muted {
@@ -194,13 +201,13 @@ label {
     z-index: 100;
     padding: var(--space-2) var(--space-4);
     background: var(--color-accent);
-    color: #1a1208;
+    color: var(--color-on-accent);
     border-radius: var(--radius-sm);
 }
 
 .skip-link:focus {
     top: var(--space-2);
-    color: #1a1208;
+    color: var(--color-on-accent);
 }
 
 .container {
@@ -226,8 +233,9 @@ label {
     position: sticky;
     top: 0;
     z-index: 40;
-    background: rgb(11 11 15 / 0.96);
+    background: rgb(13 11 12 / 0.92);
     border-bottom: 1px solid var(--color-border);
+    backdrop-filter: blur(12px);
 }
 
 .site-header-inner {
@@ -257,13 +265,14 @@ label {
     height: 0.7rem;
     border-radius: 999px;
     background: var(--color-accent);
-    box-shadow: 0 0 0 3px rgb(240 179 90 / 0.18);
+    box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
 .brand-text {
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    font-size: 0.95rem;
+    font-weight: 650;
+    letter-spacing: 0.22em;
+    font-size: 0.92rem;
+    color: var(--color-text);
 }
 
 .nav-toggle-input {
@@ -298,7 +307,11 @@ label {
     flex-direction: column;
     align-items: stretch;
     gap: var(--space-2);
-    padding-top: var(--space-2);
+    padding: var(--space-3);
+    margin-top: var(--space-2);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
 }
 
 .nav-toggle-input:checked ~ .site-nav {
@@ -315,10 +328,15 @@ label {
     border-radius: var(--radius-md);
 }
 
-.nav-link:hover,
+.nav-link:hover {
+    color: var(--color-text);
+    background: var(--color-primary-soft);
+}
+
 .nav-link[aria-current="page"] {
     color: var(--color-text);
-    background: var(--color-surface-alt);
+    background: var(--color-primary-soft);
+    box-shadow: inset 0 -2px 0 var(--color-accent);
 }
 
 .nav-logout {
@@ -333,7 +351,7 @@ label {
 .site-footer {
     margin-top: auto;
     border-top: 1px solid var(--color-border);
-    background: var(--color-surface);
+    background: var(--color-bg-deep);
 }
 
 .site-footer-inner {
@@ -360,7 +378,7 @@ label {
 }
 
 .footer-nav a:hover {
-    color: var(--color-text);
+    color: var(--color-accent);
 }
 
 .footer-muted {
@@ -398,12 +416,14 @@ button.btn {
 
 .btn-primary {
     background: var(--color-primary);
-    color: #1a0a1e;
+    color: var(--color-on-primary);
+    border-color: rgb(199 166 106 / 0.16);
+    box-shadow: 0 8px 20px rgb(0 0 0 / 0.22);
 }
 
 .btn-primary:hover {
     background: var(--color-primary-hover);
-    color: #1a0a1e;
+    color: var(--color-on-primary);
 }
 
 .btn-secondary {
@@ -412,7 +432,8 @@ button.btn {
 }
 
 .btn-secondary:hover {
-    border-color: var(--color-text-muted);
+    background: var(--color-surface-hover);
+    border-color: var(--color-border-strong);
 }
 
 .btn-danger {
@@ -433,12 +454,13 @@ button.btn {
 
 .btn-ghost:hover {
     color: var(--color-text);
-    background: var(--color-surface-alt);
+    background: var(--color-primary-soft);
 }
 
 .btn--primary {
     background: var(--color-primary);
-    color: #1a0a1e;
+    color: var(--color-on-primary);
+    border-color: rgb(199 166 106 / 0.16);
 }
 
 .btn--secondary {
@@ -496,6 +518,21 @@ select {
     background: var(--color-surface);
     color: var(--color-text);
     font: inherit;
+}
+
+.form-control:focus-visible,
+input[type="text"]:focus-visible,
+input[type="email"]:focus-visible,
+input[type="password"]:focus-visible,
+input[type="search"]:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+::placeholder {
+    color: var(--color-text-soft);
 }
 
 textarea {
@@ -607,8 +644,8 @@ legend {
 }
 
 .badge-cover {
-    background: rgb(240 179 90 / 0.16);
-    color: #f0b35a;
+    background: var(--color-accent-soft);
+    color: var(--color-accent);
 }
 
 .badge-gallery {
@@ -622,8 +659,8 @@ legend {
 }
 
 .badge-private_content {
-    background: rgb(217 70 239 / 0.16);
-    color: #e879f9;
+    background: var(--color-primary-soft);
+    color: var(--color-primary-muted);
 }
 
 .badge-paid {
@@ -669,6 +706,7 @@ legend {
     display: flex;
     flex-direction: column;
     padding: 0;
+    position: relative;
 }
 
 .listing-card img {
@@ -726,6 +764,7 @@ legend {
     font-size: var(--text-sm);
     color: var(--color-text-muted);
     font-weight: 650;
+    background: var(--color-bg-elevated);
 }
 
 .table tr:last-child td {
@@ -868,10 +907,7 @@ legend {
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     text-decoration: none;
-}
-
-.account-links a:hover {
-    border-color: var(--color-text-muted);
+    box-shadow: var(--shadow-sm);
 }
 
 .avatar-preview {
@@ -905,6 +941,10 @@ legend {
         align-items: center;
         gap: var(--space-1);
         padding: 0;
+        margin-top: 0;
+        background: transparent;
+        border: 0;
+        border-radius: 0;
     }
 
     .filter-form {
@@ -1057,11 +1097,22 @@ legend {
     text-decoration: none;
 }
 
+.listing-card-media::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: rgb(13 11 12 / 0);
+    pointer-events: none;
+    transition: background 280ms ease;
+}
+
 .listing-card-media img {
     display: block;
     width: 100%;
     aspect-ratio: 4 / 5;
     object-fit: cover;
+    transition: transform 280ms ease;
 }
 
 .listing-card-placeholder {
@@ -1074,6 +1125,7 @@ legend {
     aspect-ratio: 4 / 5;
     background: var(--color-surface-alt);
     color: var(--color-text-muted);
+    transition: transform 280ms ease;
 }
 
 .listing-card-placeholder-brand {
@@ -1090,10 +1142,10 @@ legend {
     position: absolute;
     top: var(--space-3);
     left: var(--space-3);
-    z-index: 1;
+    z-index: 2;
     padding: 0.2rem 0.55rem;
     border-radius: 999px;
-    background: rgb(11 11 15 / 0.82);
+    background: rgb(13 11 12 / 0.82);
     color: var(--color-text);
     font-size: 0.72rem;
     font-weight: 650;
@@ -1169,7 +1221,7 @@ legend {
     font-size: 1.05rem;
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: var(--color-accent);
+    color: var(--color-text);
 }
 
 .listing-card-favorite {
@@ -1183,11 +1235,14 @@ legend {
     padding: 0.35rem 0.75rem;
     font-size: var(--text-sm);
     white-space: nowrap;
+    color: var(--color-text);
+    transition: transform 180ms ease, background-color var(--transition), border-color var(--transition), color var(--transition);
 }
 
 .listing-favorite.is-active {
-    color: var(--color-accent);
-    border-color: rgb(240 179 90 / 0.45);
+    color: var(--color-text);
+    background: var(--color-primary-soft);
+    border-color: var(--color-primary-hover);
 }
 
 .empty-state-actions {
@@ -1202,6 +1257,14 @@ legend {
 .listing-detail-media,
 .listing-detail-info {
     min-width: 0;
+}
+
+.listing-detail-info {
+    padding: var(--space-6);
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
 }
 
 .listing-hero {
@@ -1256,7 +1319,7 @@ legend {
     font-size: 1.6rem;
     font-weight: 700;
     letter-spacing: -0.03em;
-    color: var(--color-accent);
+    color: var(--color-text);
 }
 
 .listing-description {
@@ -1275,9 +1338,9 @@ legend {
 
 .private-lock {
     padding: var(--space-6);
-    border: 1px dashed rgb(240 179 90 / 0.35);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
-    background: rgb(240 179 90 / 0.06);
+    background: var(--color-primary-soft);
 }
 
 .private-lock h2 {
@@ -1292,7 +1355,7 @@ legend {
 }
 
 .pagination-disabled {
-    color: var(--color-border);
+    color: var(--color-text-soft);
 }
 
 /* ========== Profile ========== */
@@ -1313,7 +1376,7 @@ legend {
     height: 5.5rem;
     object-fit: cover;
     border-radius: 999px;
-    border: 1px solid var(--color-border);
+    border: 1px solid var(--color-border-strong);
     background: var(--color-surface-alt);
 }
 
@@ -1383,7 +1446,6 @@ legend {
 }
 
 .action-card:hover {
-    border-color: var(--color-text-muted);
     color: var(--color-text);
 }
 
@@ -1450,6 +1512,7 @@ legend {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
 }
 
 .compact-card h2,
@@ -1465,6 +1528,7 @@ legend {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
 }
 
 .media-card-preview {
@@ -1536,6 +1600,7 @@ legend {
 .admin-subnav-link[aria-current="page"] {
     color: var(--color-text);
     border-color: var(--color-accent);
+    background: var(--color-bg-elevated);
 }
 
 .admin-stat-grid {
@@ -1552,6 +1617,7 @@ legend {
     border-radius: var(--radius-lg);
     text-decoration: none;
     color: inherit;
+    box-shadow: var(--shadow-sm);
 }
 
 .admin-stat-title {
@@ -1626,6 +1692,13 @@ legend {
     display: grid;
     gap: var(--space-6);
     max-width: 36rem;
+}
+
+.checkout-summary {
+    padding: var(--space-5);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
 }
 
 .checkout-summary dt {
@@ -1736,10 +1809,10 @@ legend {
     border-radius: var(--radius-lg);
     text-decoration: none;
     color: var(--color-text);
+    box-shadow: var(--shadow-sm);
 }
 
 .report-card:hover {
-    border-color: var(--color-text-muted);
     color: var(--color-text);
 }
 
@@ -1806,15 +1879,15 @@ legend {
     border-radius: var(--radius-lg);
     text-decoration: none;
     color: var(--color-text);
+    box-shadow: var(--shadow-sm);
 }
 
 .message-thread-card:hover {
-    border-color: var(--color-text-muted);
     color: var(--color-text);
 }
 
 .message-thread-card.is-unread {
-    border-left: 4px solid var(--color-accent);
+    border-left: 3px solid var(--color-primary);
 }
 
 .message-thread-name {
@@ -1886,7 +1959,8 @@ legend {
 }
 
 .message-row.is-own .message-bubble {
-    background: var(--color-surface-alt);
+    background: var(--color-velvet-deep);
+    border-color: rgb(110 31 50 / 0.4);
     border-bottom-right-radius: 4px;
 }
 
@@ -2048,9 +2122,9 @@ legend {
 .legal-draft {
     margin: 0 0 var(--space-4);
     padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    background: var(--color-surface);
-    color: var(--color-text-muted);
+    border: 1px solid rgb(212 160 23 / 0.4);
+    background: rgb(212 160 23 / 0.1);
+    color: #f3d48a;
     font-size: var(--text-sm);
 }
 
@@ -2098,17 +2172,10 @@ legend {
 .action-card,
 .admin-stat-card,
 .report-card,
-.message-thread-card {
-    transition: border-color var(--transition-fast), background-color var(--transition-fast), transform var(--transition-fast);
-}
-
-.card--interactive:hover,
-.action-card:hover,
-.admin-stat-card:hover,
-.report-card:hover,
-.message-thread-card:hover {
-    background: var(--color-bg-elevated);
-    border-color: var(--color-border-strong);
+.message-thread-card,
+.legal-hub-card,
+.account-links a {
+    transition: border-color var(--transition), background-color var(--transition), transform var(--transition), box-shadow var(--transition);
 }
 
 .card--stat {
@@ -2163,6 +2230,7 @@ legend {
 .listing-card {
     min-width: 0;
     height: 100%;
+    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition), background-color var(--transition);
 }
 
 .result-count {
@@ -2173,6 +2241,8 @@ legend {
 
 .home-hero {
     padding: var(--space-10) 0 var(--space-8);
+    background: linear-gradient(135deg, rgb(110 31 50 / 0.18), rgb(13 11 12 / 0) 58%);
+    border-radius: var(--radius-lg);
 }
 
 .home-hero h1 {
@@ -2192,6 +2262,8 @@ legend {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition), background-color var(--transition);
 }
 
 .home-feature h2,
@@ -2203,9 +2275,9 @@ legend {
 .home-notice {
     padding: var(--space-5);
     margin-bottom: var(--space-8);
-    border: 1px solid rgb(240 179 90 / 0.35);
+    border: 1px solid rgb(212 160 23 / 0.35);
     border-radius: var(--radius-lg);
-    background: rgb(240 179 90 / 0.07);
+    background: rgb(212 160 23 / 0.08);
 }
 
 .home-legal {
@@ -2217,6 +2289,11 @@ legend {
     list-style: none;
 }
 
+.home-legal a,
+.legal-doc a {
+    color: var(--color-accent);
+}
+
 .dashboard-section {
     margin-bottom: var(--space-10);
 }
@@ -2224,9 +2301,9 @@ legend {
 .dashboard-section-title {
     margin-bottom: var(--space-4);
     font-size: var(--text-sm);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: var(--color-text-muted);
+    color: var(--color-accent);
 }
 
 .legal-hub {
@@ -2244,10 +2321,10 @@ legend {
     text-decoration: none;
     color: var(--color-text);
     min-height: 6.5rem;
+    box-shadow: var(--shadow-sm);
 }
 
 .legal-hub-card:hover {
-    border-color: var(--color-border-strong);
     color: var(--color-text);
 }
 
@@ -2262,6 +2339,8 @@ legend {
 
 .legal-doc h2 {
     margin-top: var(--space-8);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .site-footer-inner {
@@ -2301,8 +2380,9 @@ legend {
     margin-left: 0.25rem;
     padding: 0 0.35rem;
     border-radius: var(--radius-pill);
-    background: var(--color-primary-soft);
-    color: var(--color-primary);
+    background: var(--color-velvet-deep);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
     font-size: var(--text-xs);
     font-weight: 700;
 }
@@ -2321,7 +2401,7 @@ legend {
 }
 
 .notification-inbox .message-thread-card.is-unread {
-    border-left: 4px solid var(--color-accent);
+    border-left: 3px solid var(--color-primary);
 }
 
 .notification-inbox .message-thread-card:not(.is-unread) {
@@ -2351,8 +2431,11 @@ legend {
 }
 
 .pagination [aria-current="page"] {
-    color: var(--color-text);
+    color: var(--color-on-primary);
+    background: var(--color-primary);
     font-weight: 650;
+    border-radius: var(--radius-sm);
+    padding: 0.2rem 0.55rem;
 }
 
 .admin-subnav-link {
@@ -2366,7 +2449,7 @@ legend {
 }
 
 .media-card.is-private {
-    border-color: rgb(217 70 239 / 0.45);
+    border-color: var(--color-primary-hover);
 }
 
 .form-control:hover,
@@ -2395,6 +2478,7 @@ textarea:focus-visible,
 summary:focus-visible {
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
+    box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
 @media (min-width: 26.875rem) {
@@ -2474,6 +2558,112 @@ summary:focus-visible {
     margin-top: var(--space-2);
 }
 
+/* ========== PREMIUM-POLISH-1A floating cards ========== */
+
+.card--interactive,
+.listing-card,
+.action-card,
+.admin-stat-card,
+.report-card,
+.message-thread-card,
+.legal-hub-card,
+.account-links a {
+    transform: translateY(0);
+}
+
+.listing-favorite:active {
+    transform: scale(0.96);
+}
+
+.listing-favorite:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.card--interactive:focus-visible,
+.action-card:focus-visible,
+.admin-stat-card:focus-visible,
+.report-card:focus-visible,
+.message-thread-card:focus-visible,
+.legal-hub-card:focus-visible,
+.account-links a:focus-visible,
+.listing-card:focus-within {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+    border-color: var(--color-border-strong);
+    box-shadow: 0 0 0 3px var(--color-accent-soft), var(--shadow-md);
+}
+
+.card--interactive:active,
+.listing-card:active,
+.action-card:active,
+.admin-stat-card:active,
+.report-card:active,
+.message-thread-card:active,
+.legal-hub-card:active,
+.account-links a:active {
+    transform: translateY(-1px) scale(0.995);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .card--interactive:hover,
+    .listing-card:hover,
+    .action-card:hover,
+    .admin-stat-card:hover,
+    .report-card:hover,
+    .message-thread-card:hover,
+    .legal-hub-card:hover,
+    .account-links a:hover {
+        z-index: 2;
+        background: var(--color-surface-hover);
+        border-color: var(--color-border-strong);
+        box-shadow: var(--shadow-md);
+    }
+
+    .home-feature:hover,
+    .home-trust-item:hover {
+        background: var(--color-surface-hover);
+        border-color: var(--color-border-strong);
+        box-shadow: var(--shadow-md);
+    }
+
+    .listing-card:hover .listing-card-media::after {
+        background: rgb(13 11 12 / 0.14);
+    }
+
+    .listing-favorite:hover {
+        border-color: var(--color-border-strong);
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+        .card--interactive:hover,
+        .listing-card:hover,
+        .action-card:hover,
+        .admin-stat-card:hover,
+        .report-card:hover,
+        .message-thread-card:hover,
+        .legal-hub-card:hover,
+        .account-links a:hover {
+            transform: translateY(-4px);
+        }
+
+        .home-feature:hover,
+        .home-trust-item:hover {
+            transform: translateY(-3px);
+        }
+
+        .listing-card:hover .listing-card-media img,
+        .listing-card:hover .listing-card-placeholder {
+            transform: scale(1.03);
+        }
+
+        .listing-favorite:hover {
+            transform: scale(1.06);
+        }
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
@@ -2481,5 +2671,21 @@ summary:focus-visible {
         animation: none !important;
         transition: none !important;
         scroll-behavior: auto !important;
+    }
+
+    .card--interactive,
+    .listing-card,
+    .action-card,
+    .admin-stat-card,
+    .report-card,
+    .message-thread-card,
+    .legal-hub-card,
+    .account-links a,
+    .home-feature,
+    .home-trust-item,
+    .listing-favorite,
+    .listing-card-media img,
+    .listing-card-placeholder {
+        transform: none !important;
     }
 }
