@@ -180,4 +180,4 @@ ob_start();
     </nav>
 </div>
 <?php
-\App\Core\Layout::render('Marketplace - ERONYX', (string) ob_get_clean());
+\App\Core\Layout::render('Marketplace | ERONYX', (string) ob_get_clean());

@@ -15,6 +15,7 @@ $e = static fn (mixed $value): string => \App\Core\Layout::escape($value);
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= $e($pageTitle) ?></title>
+    <meta name="robots" content="noindex, nofollow">
     <link rel="stylesheet" href="<?= $e($cssUrl) ?>">
 </head>
 <body class="site-body page-error">

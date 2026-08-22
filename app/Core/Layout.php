@@ -6,10 +6,11 @@ namespace App\Core;
 
 final class Layout
 {
-    public static function render(string $title, string $content, string $bodyClass = ''): void
+    public static function render(string $title, string $content, string $bodyClass = '', array $seo = []): void
     {
         $pageTitle = $title;
         $nav = Nav::context();
+        $seoMeta = (new \App\Services\SeoService())->resolve($title, $seo);
 
         require dirname(__DIR__) . '/Views/layouts/main.php';
     }

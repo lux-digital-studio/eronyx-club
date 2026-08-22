@@ -168,4 +168,9 @@ ob_start();
     </article>
 </div>
 <?php
-\App\Core\Layout::render($listing['title'] . ' - ERONYX', (string) ob_get_clean());
+$coverUrl = null;
+if ($coverItems !== [] && isset($coverItems[0]['media_file_id'])) {
+    $coverUrl = \App\Core\Layout::url('/media/' . (int) $coverItems[0]['media_file_id']);
+}
+$seo = (new \App\Services\SeoService())->forListing($listing, $coverUrl);
+\App\Core\Layout::render((string) ($listing['title'] !== '' ? $listing['title'] . ' | ERONYX' : 'Publicación | ERONYX'), (string) ob_get_clean(), '', $seo);

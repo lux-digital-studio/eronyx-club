@@ -65,4 +65,4 @@ ob_start();
     </ul>
 </div>
 <?php
-\App\Core\Layout::render('ERONYX', (string) ob_get_clean());
+\App\Core\Layout::render('ERONYX — Private Marketplace', (string) ob_get_clean());

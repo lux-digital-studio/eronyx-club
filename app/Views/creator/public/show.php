@@ -60,4 +60,13 @@ ob_start();
     </section>
 </div>
 <?php
-\App\Core\Layout::render($profile['display_name'] . ' - ERONYX', (string) ob_get_clean());
+$avatarUrl = $profile['avatar_media_id'] !== null
+    ? \App\Core\Layout::url('/media/' . (int) $profile['avatar_media_id'])
+    : null;
+$seo = (new \App\Services\SeoService())->forCreator($profile, $avatarUrl);
+\App\Core\Layout::render(
+    ((string) ($profile['display_name'] ?? '') !== '' ? (string) $profile['display_name'] : (string) $profile['username']) . ' | ERONYX',
+    (string) ob_get_clean(),
+    '',
+    $seo
+);

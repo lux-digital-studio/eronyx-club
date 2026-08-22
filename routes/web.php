@@ -7,6 +7,8 @@ use App\Controllers\AuthController;
 use App\Controllers\MfaChallengeController;
 use App\Controllers\MfaController;
 use App\Controllers\LegalController;
+use App\Controllers\RobotsController;
+use App\Controllers\SitemapController;
 use App\Controllers\AccountController;
 use App\Controllers\AccountSecurityController;
 use App\Controllers\AdminAuditController;
@@ -45,6 +47,8 @@ use App\Middleware\VerifiedEmailMiddleware;
 
 return static function (Router $router): void {
     $router->get('/', [HomeController::class, 'index']);
+    $router->get('/robots.txt', [RobotsController::class, 'txt']);
+    $router->get('/sitemap.xml', [SitemapController::class, 'xml']);
     $router->get('/legal', [LegalController::class, 'index']);
     $router->get('/terms', [LegalController::class, 'terms']);
     $router->get('/privacy', [LegalController::class, 'privacy']);

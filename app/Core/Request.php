@@ -86,6 +86,12 @@ final class Request
         return $_GET[$key] ?? $default;
     }
 
+    /** @return array<string, mixed> */
+    public function queryParameters(): array
+    {
+        return $_GET;
+    }
+
     /** @return array<string, mixed>|null */
     public function file(string $key): ?array
     {

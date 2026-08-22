@@ -56,6 +56,10 @@ final class Response
             $headers['Pragma'] = 'no-cache';
         }
 
+        if (!$production) {
+            $headers['X-Robots-Tag'] = 'noindex, nofollow';
+        }
+
         return $headers;
     }
 
@@ -74,6 +78,19 @@ final class Response
 
         if (!headers_sent()) {
             $this->setHeader('Content-Type', 'text/html; charset=UTF-8');
+        }
+
+        echo $content;
+    }
+
+    public function sendRaw(string $content, string $contentType, int $statusCode = 200): void
+    {
+        $status = $this->normalizeStatus($statusCode);
+        $this->applySecurityHeaders();
+        http_response_code($status);
+
+        if (!headers_sent()) {
+            $this->setHeader('Content-Type', $contentType);
         }
 
         echo $content;
@@ -203,6 +220,7 @@ final class Response
 
         if (!headers_sent()) {
             $this->setHeader('Content-Type', 'text/html; charset=UTF-8');
+            $this->setHeader('X-Robots-Tag', 'noindex, nofollow');
         }
 
         echo $this->renderErrorPage($status);
@@ -227,7 +245,7 @@ final class Response
                 $authenticated = Nav::context()['authenticated'] === true;
                 $inner = $this->errorView($status, $authenticated, $homeUrl, $marketplaceUrl, $accountUrl);
                 ob_start();
-                Layout::render($pageTitle, $inner, 'page-error');
+                Layout::render($pageTitle, $inner, 'page-error', (new \App\Services\SeoService())->forError());
 
                 return (string) ob_get_clean();
             } catch (\Throwable) {
