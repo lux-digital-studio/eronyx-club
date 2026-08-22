@@ -2664,6 +2664,33 @@ summary:focus-visible {
     }
 }
 
+.mfa-status,
+.mfa-setup,
+.recovery-codes,
+.mfa-challenge {
+    max-width: 40rem;
+}
+
+.mfa-qr {
+    display: block;
+    width: 192px;
+    height: 192px;
+    margin: 0 0 var(--space-4);
+    background: #fff;
+    border-radius: var(--radius-md, 8px);
+}
+
+.mfa-secret code,
+.recovery-code {
+    font-family: Consolas, "Courier New", monospace;
+    letter-spacing: 0.04em;
+}
+
+.recovery-code-list {
+    margin: 0 0 var(--space-4);
+    padding-left: 1.2rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

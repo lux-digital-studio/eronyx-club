@@ -38,7 +38,7 @@ ob_start();
             <div class="form-group">
                 <label for="new_password">Nueva contraseña</label>
                 <input id="new_password" type="password" name="new_password" required minlength="10" maxlength="255" autocomplete="new-password">
-                <p class="form-help">Mínimo 10 caracteres. No se activa un segundo factor en esta fase.</p>
+                <p class="form-help">Mínimo 10 caracteres.</p>
             </div>
 
             <div class="form-group">
@@ -50,7 +50,7 @@ ob_start();
         </form>
     </section>
 
-    <p><a class="link-muted" href="<?= $e($accountUrl) ?>">Volver a mi cuenta</a></p>
+    <p><a class="link-muted" href="<?= $e(\App\Core\Layout::url('/account/security/mfa')) ?>">Autenticación en dos pasos</a> · <a class="link-muted" href="<?= $e($accountUrl) ?>">Volver a mi cuenta</a></p>
 </div>
 <?php
 \App\Core\Layout::render('Cambiar contraseña - ERONYX', (string) ob_get_clean());

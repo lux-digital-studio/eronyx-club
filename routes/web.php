@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Controllers\HomeController;
 use App\Controllers\AuthController;
+use App\Controllers\MfaChallengeController;
+use App\Controllers\MfaController;
 use App\Controllers\LegalController;
 use App\Controllers\AccountController;
 use App\Controllers\AccountSecurityController;
@@ -60,6 +62,12 @@ return static function (Router $router): void {
     $router->post('/account/verify-email/resend', [EmailVerificationController::class, 'resend'], [AuthMiddleware::class]);
     $router->get('/account/security/password', [AccountSecurityController::class, 'passwordForm'], [AuthMiddleware::class]);
     $router->post('/account/security/password', [AccountSecurityController::class, 'changePassword'], [AuthMiddleware::class]);
+    $router->get('/account/security/mfa', [MfaController::class, 'show'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->post('/account/security/mfa/setup', [MfaController::class, 'setup'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->post('/account/security/mfa/confirm', [MfaController::class, 'confirm'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->get('/account/security/mfa/recovery', [MfaController::class, 'recovery'], [AuthMiddleware::class, VerifiedEmailMiddleware::class]);
+    $router->post('/account/security/mfa/recovery/regenerate', [MfaController::class, 'regenerate'], [AuthMiddleware::class]);
+    $router->post('/account/security/mfa/disable', [MfaController::class, 'disable'], [AuthMiddleware::class]);
     $router->get('/account/notifications', [NotificationController::class, 'index'], [AuthMiddleware::class]);
     $router->post('/account/notifications/read-all', [NotificationController::class, 'markAllRead'], [AuthMiddleware::class]);
     $router->post('/account/notifications/{id}/read', [NotificationController::class, 'markRead'], [AuthMiddleware::class]);
@@ -302,6 +310,8 @@ return static function (Router $router): void {
     $router->post('/register', [AuthController::class, 'register'], [GuestMiddleware::class]);
     $router->get('/login', [AuthController::class, 'showLogin'], [GuestMiddleware::class]);
     $router->post('/login', [AuthController::class, 'login'], [GuestMiddleware::class]);
+    $router->get('/mfa/challenge', [MfaChallengeController::class, 'show'], [GuestMiddleware::class]);
+    $router->post('/mfa/challenge', [MfaChallengeController::class, 'verify'], [GuestMiddleware::class]);
     $router->get('/forgot-password', [PasswordResetController::class, 'forgotForm'], [GuestMiddleware::class]);
     $router->post('/forgot-password', [PasswordResetController::class, 'requestReset'], [GuestMiddleware::class]);
     $router->get('/reset-password/{token}', [PasswordResetController::class, 'resetForm'], [GuestMiddleware::class]);

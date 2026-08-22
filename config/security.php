@@ -52,5 +52,9 @@ return [
         'reset_password' => ['max' => 10, 'decay' => 1800],
         'change_password' => ['max' => 10, 'decay' => 3600],
         'email_verification_resend' => ['max' => 5, 'decay' => 3600],
+        'mfa_challenge' => ['max' => 10, 'decay' => 900],
+        'mfa_setup_confirm' => ['max' => 10, 'decay' => 900],
+        'mfa_disable' => ['max' => 10, 'decay' => 3600],
+        'mfa_recovery_regenerate' => ['max' => 10, 'decay' => 3600],
     ],
 ];

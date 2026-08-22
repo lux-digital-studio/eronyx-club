@@ -52,6 +52,7 @@ final class AccountController
             'notificationUnreadCount' => $notificationUnreadCount,
             'profileUrl' => $this->url('/account/profile'),
             'securityUrl' => $this->url('/account/security/password'),
+            'mfaUrl' => $this->url('/account/security/mfa'),
             'creatorStatusUrl' => $this->url('/account/creator/status'),
             'legalUrl' => $this->url('/account/legal'),
             'verifyEmailUrl' => $this->url('/account/verify-email'),

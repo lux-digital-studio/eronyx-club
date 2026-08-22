@@ -7,6 +7,7 @@ namespace App\Services;
 use App\Core\Database;
 use App\Repositories\AdminRepository;
 use App\Repositories\AuditLogRepository;
+use App\Repositories\MfaRepository;
 use App\Repositories\ModerationActionRepository;
 use App\Repositories\UserRepository;
 use RuntimeException;
@@ -78,6 +79,7 @@ final class AdminService
         $user['counts'] = $this->admin->userActivityCounts($userId);
         $user['creator_profile'] = $this->admin->findCreatorDetail($userId);
         $user['consents'] = (new UserConsentService($this->pdo))->findForUser($userId);
+        $user['mfa_enabled'] = (new MfaRepository($this->pdo))->isEnabled($userId);
 
         return $user;
     }

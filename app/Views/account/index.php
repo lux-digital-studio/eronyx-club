@@ -94,6 +94,10 @@ ob_start();
                 <h3 class="action-card-title">Contraseña</h3>
                 <p class="action-card-copy">Cambiar la contraseña de la cuenta.</p>
             </a>
+            <a class="action-card" href="<?= $e($mfaUrl) ?>">
+                <h3 class="action-card-title">Autenticación en dos pasos</h3>
+                <p class="action-card-copy">Activar o gestionar MFA con app Authenticator.</p>
+            </a>
         </div>
         <form method="post" action="<?= $e($logoutUrl) ?>">
             <input type="hidden" name="_csrf" value="<?= $e($csrf) ?>">

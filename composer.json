@@ -9,6 +9,8 @@
     },
     "require": {
         "php": ">=8.2",
-        "phpmailer/phpmailer": "^7.1"
+        "phpmailer/phpmailer": "^7.1",
+        "spomky-labs/otphp": "^11.5",
+        "bacon/bacon-qr-code": "^3.0"
     }
 }

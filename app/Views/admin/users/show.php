@@ -27,6 +27,7 @@ ob_start();
                 <dt>Bio</dt><dd><?= $e($user['bio'] ?? '') ?></dd>
                 <dt>Estado</dt><dd><span class="<?= $e(\App\Core\Layout::statusBadgeClass((string) $user['status'])) ?>"><?= $e(\App\Core\Layout::statusLabel((string) $user['status'])) ?></span></dd>
                 <dt>Email verificado</dt><dd><?= !empty($user['email_verified']) ? $e((string) $user['email_verified_at']) : 'Pendiente' ?></dd>
+                <dt>MFA</dt><dd><?= !empty($user['mfa_enabled']) ? 'Activado' : 'No activado' ?></dd>
                 <dt>Roles</dt><dd><?= $e(implode(', ', $user['roles'] ?? [])) ?></dd>
                 <dt>Alta</dt><dd><?= $e($user['created_at']) ?></dd>
                 <dt>Actualizado</dt><dd><?= $e($user['updated_at']) ?></dd>

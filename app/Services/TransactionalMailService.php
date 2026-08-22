@@ -43,6 +43,16 @@ final class TransactionalMailService
         return $this->sendTemplate($userId, 'password-reset-completed', 'password_reset_completed', [], true);
     }
 
+    public function sendMfaEnabled(int $userId): bool
+    {
+        return $this->sendTemplate($userId, 'mfa-enabled', 'mfa_enabled', [], true);
+    }
+
+    public function sendMfaDisabled(int $userId): bool
+    {
+        return $this->sendTemplate($userId, 'mfa-disabled', 'mfa_disabled', [], true);
+    }
+
     public function sendEmailVerification(int $userId, string $verificationUrl): bool
     {
         return $this->sendTemplate($userId, 'email-verification', 'email_verification', [

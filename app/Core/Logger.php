@@ -30,6 +30,14 @@ final class Logger
         'reset_token',
         'raw_token',
         'verification_token',
+        'totp',
+        'totp_code',
+        'recovery_code',
+        'mfa_code',
+        'otp',
+        'otpauth',
+        'secret_encrypted',
+        'mfa_secret',
     ];
 
     public static function error(string $message, array $context = []): void
@@ -99,10 +107,12 @@ final class Logger
 
     private static function redact(string $value): string
     {
-        return (string) preg_replace(
+        $redacted = (string) preg_replace(
             '/(password(?:_hash|_confirmation)?|_csrf|csrf|cookie|authorization)\\s*[=:]\\s*\\S+/i',
             '$1=[redacted]',
             $value
         );
+
+        return (string) preg_replace('/otpauth:\\/\\/\\S+/i', 'otpauth://[redacted]', $redacted);
     }
 }

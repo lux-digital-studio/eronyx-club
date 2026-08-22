@@ -131,8 +131,13 @@ final class AuthController
         }
 
         $validation = (new LoginValidator())->validate($this->request->all());
+        $result = ['ok' => false, 'mfa_required' => false];
 
-        if (!$validation['valid'] || !$this->auth->attempt($validation['data']['email'], $validation['data']['password'])) {
+        if ($validation['valid']) {
+            $result = $this->auth->authenticate($validation['data']['email'], $validation['data']['password']);
+        }
+
+        if (!$result['ok']) {
             $this->rateLimiter->hit($ipKey, $loginLimit['decay']);
             $this->rateLimiter->hit($identityKey, $loginLimit['decay']);
 
@@ -150,7 +155,7 @@ final class AuthController
         $this->rateLimiter->reset($ipKey);
         $this->rateLimiter->reset($identityKey);
         $this->csrf->regenerate();
-        $this->response->redirect($this->url('/'));
+        $this->response->redirect($this->url($result['mfa_required'] ? '/mfa/challenge' : '/'));
 
         return null;
     }
